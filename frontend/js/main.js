@@ -5,10 +5,10 @@
 
 // Tự nhận diện môi trường: chạy local thì gọi localhost, deploy thật thì gọi backend Render.
 // Sau khi deploy backend lên Render, thay PRODUCTION_API_URL bằng địa chỉ Render thật của bạn.
-const PRODUCTION_API_URL = "https://khmerdigitalmuseumkhkt.onrender.com/api";
+const PRODUCTION_API_URL = "https://catvang.onrender.com/api";
 const API_BASE_URL =
   ["localhost", "127.0.0.1"].includes(window.location.hostname)
-    ? "http://localhost:8s000/api"
+    ? "http://localhost:8000/api"
     : PRODUCTION_API_URL;
 
 let allMotifs = [];
