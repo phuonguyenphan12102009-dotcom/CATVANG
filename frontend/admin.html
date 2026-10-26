@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quản trị | Bảo Tàng Số Kiến Trúc Chùa Khmer</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: '#FDF1DC',
+            beige: '#FBE4BF',
+            gold: '#E8A93B',
+            'gold-dark': '#C9862A',
+            terracotta: '#E2532D',
+            'terracotta-dark': '#B93D1E',
+            ink: '#4A2416',
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'serif'],
+            body: ['"Be Vietnam Pro"', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body class="bg-cream text-ink font-body antialiased min-h-screen">
+
+  <!-- ============ MÀN HÌNH ĐĂNG NHẬP ============ -->
+  <section id="loginScreen" class="min-h-screen flex items-center justify-center px-6">
+    <div class="glass-panel rounded-2xl w-full max-w-md p-8 sm:p-10">
+      <div class="flex items-center gap-3 mb-8 justify-center">
+        <span class="w-11 h-11 rounded-full border-2 border-gold flex items-center justify-center text-gold font-serif text-xl">🏛️</span>
+        <span class="font-serif text-lg text-ink">Bảo Tàng Số <span class="text-terracotta italic">Khmer</span></span>
+      </div>
+      <h1 class="font-serif text-2xl text-ink text-center mb-1">Đăng nhập quản trị</h1>
+      <p class="text-ink/55 text-sm text-center mb-7">Dành cho quản trị viên nội dung hệ thống</p>
+
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-ink/70 mb-1.5" for="username">Tên đăng nhập</label>
+          <input id="username" name="username" type="text" required autocomplete="username"
+            class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-ink/70 mb-1.5" for="password">Mật khẩu</label>
+          <input id="password" name="password" type="password" required autocomplete="current-password"
+            class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50" />
+        </div>
+        <p id="loginError" class="hidden text-xs text-terracotta-dark bg-terracotta/10 border border-terracotta/25 rounded-lg px-3 py-2"></p>
+        <button type="submit" id="loginSubmitBtn"
+          class="w-full py-3 rounded-xl bg-terracotta text-white text-sm font-semibold hover:bg-terracotta-dark transition-colors">
+          Đăng nhập
+        </button>
+      </form>
+
+      
+      <a href="index.html" class="block text-xs text-center text-gold-dark mt-3 hover:underline">← Về trang khách</a>
+    </div>
+  </section>
+
+  <!-- ============ DASHBOARD QUẢN TRỊ (ẩn cho đến khi đăng nhập) ============ -->
+  <div id="dashboardScreen" class="hidden">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-30 bg-cream/90 backdrop-blur-md border-b border-gold/20">
+      <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="w-9 h-9 rounded-full border-2 border-gold flex items-center justify-center text-gold font-serif text-lg">🏛️</span>
+          <span class="font-serif text-lg text-ink">Bảng điều khiển <span class="text-terracotta italic">quản trị</span></span>
+        </div>
+        <div class="flex items-center gap-4">
+          <span id="adminGreeting" class="text-sm text-ink/60 hidden sm:inline"></span>
+          <a href="index.html" class="text-xs px-4 py-2 rounded-full border border-ink/15 hover:bg-ink/5 transition-colors">Xem trang khách</a>
+          <button id="logoutBtn" class="text-xs px-4 py-2 rounded-full bg-ink text-cream hover:bg-ink/85 transition-colors">Đăng xuất</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-10">
+
+      <!-- Thống kê nhanh -->
+      <div class="grid sm:grid-cols-4 gap-4 mb-10">
+        <div class="rounded-2xl bg-beige/50 border border-gold/20 p-5">
+          <p class="text-xs text-ink/50 mb-1">Tổng số hoa văn</p>
+          <p id="statTotalMotifs" class="font-serif text-3xl text-ink">—</p>
+        </div>
+        <div class="rounded-2xl bg-beige/50 border border-gold/20 p-5">
+          <p class="text-xs text-ink/50 mb-1">Tổng lượt quét QR</p>
+          <p id="statTotalScans" class="font-serif text-3xl text-terracotta">—</p>
+        </div>
+        <div class="rounded-2xl bg-beige/50 border border-gold/20 p-5 sm:col-span-2">
+          <p class="text-xs text-ink/50 mb-2">Theo danh mục</p>
+          <div id="statByCategory" class="flex flex-wrap gap-2"></div>
+        </div>
+      </div>
+
+      <!-- Thanh công cụ -->
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-5">
+        <h2 class="font-serif text-2xl text-ink">Quản lý chi tiết tạo hình</h2>
+        <button id="openCreateBtn" class="px-5 py-2.5 rounded-full bg-terracotta text-white text-sm font-semibold hover:bg-terracotta-dark transition-colors">
+          + Thêm hoa văn mới
+        </button>
+      </div>
+
+      <p id="adminError" class="hidden text-sm text-terracotta-dark bg-terracotta/10 border border-terracotta/25 rounded-lg px-4 py-2.5 mb-4"></p>
+
+      <!-- Bảng danh sách -->
+      <div class="rounded-2xl border border-gold/20 overflow-hidden bg-white/60">
+        <table class="w-full text-sm">
+          <thead class="bg-beige/70 text-ink/60 text-xs uppercase tracking-wide">
+            <tr>
+              <th class="text-left px-4 py-3">Ảnh</th>
+              <th class="text-left px-4 py-3">Tiêu đề</th>
+              <th class="text-left px-4 py-3">Danh mục</th>
+              <th class="text-left px-4 py-3">Chùa</th>
+              <th class="text-left px-4 py-3">Lượt quét</th>
+              <th class="text-right px-4 py-3">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="motifTableBody" class="divide-y divide-gold/10"></tbody>
+        </table>
+        <p id="tableEmptyState" class="hidden text-center text-ink/45 py-10">Chưa có hoa văn nào — hãy thêm mới.</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ MODAL THÊM / SỬA HOA VĂN ============ -->
+  <div id="motifFormModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-panel bg-cream rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div class="p-7 sm:p-8">
+        <div class="flex items-center justify-between mb-6">
+          <h3 id="formModalTitle" class="font-serif text-2xl text-ink">Thêm hoa văn mới</h3>
+          <button id="formModalCloseBtn" class="w-9 h-9 rounded-full bg-ink/5 hover:bg-ink/10 flex items-center justify-center transition-colors" aria-label="Đóng">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l10 10M13 3L3 13" /></svg>
+          </button>
+        </div>
+
+        <form id="motifForm" class="space-y-4">
+          <input type="hidden" id="motifId" />
+
+          <div>
+            <label class="block text-xs font-medium text-ink/70 mb-1.5">Tiêu đề *</label>
+            <input id="fTitle" required class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-ink/70 mb-1.5">Mô tả ý nghĩa văn hóa *</label>
+            <textarea id="fDescription" required rows="3" class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-ink/70 mb-1.5">Danh mục *</label>
+            <select id="fCategory" required class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50">
+              <option value="Tượng">Tượng</option>
+              <option value="Phù điêu">Phù điêu</option>
+              <option value="Hoa văn">Hoa văn</option>
+              <option value="Hội họa">Hội họa</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-ink/70 mb-1.5">Hình ảnh *</label>
+
+            <!-- Tải ảnh từ máy tính -->
+            <div class="flex items-center gap-3 mb-2">
+              <label for="fImageFile" class="cursor-pointer text-xs font-semibold px-3 py-2 rounded-lg border border-gold/40 bg-white/70 hover:bg-gold/10 transition-colors whitespace-nowrap">
+                📁 Chọn ảnh từ máy
+              </label>
+              <input id="fImageFile" type="file" accept="image/png, image/jpeg, image/webp, image/gif" class="hidden" />
+              <span id="fImageFileName" class="text-xs text-ink/50 truncate">Chưa chọn file nào</span>
+            </div>
+
+            <!-- Xem trước ảnh -->
+            <img id="fImagePreview" src="" alt="" class="hidden w-full h-32 object-cover rounded-lg border border-gold/20 mb-2" />
+            <p id="fImageUploadStatus" class="hidden text-xs px-2 py-1 rounded mb-2"></p>
+
+            <!-- URL ảnh: tự điền sau khi tải lên, hoặc dán link có sẵn -->
+            <input id="fImageUrl" required type="text" placeholder="Hoặc dán URL ảnh có sẵn (https://...)" class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50" />
+            <p class="text-[11px] text-ink/40 mt-1">Chọn ảnh từ máy để tự động tải lên, hoặc dán URL ảnh đã có sẵn trên mạng.</p>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-ink/70 mb-1.5">Tên ngôi chùa</label>
+              <input id="fTempleName" class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-ink/70 mb-1.5">Địa chỉ ngôi chùa</label>
+              <input id="fTempleAddress" class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50" />
+            </div>
+          </div>
+
+          <p class="text-xs text-ink/50 pt-1">Toạ độ hotspot trên ảnh kiến trúc tổng thể (đơn vị %, 0–100)</p>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-ink/70 mb-1.5">Hotspot X (%)</label>
+              <input id="fHotspotX" type="number" min="0" max="100" value="50" class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-ink/70 mb-1.5">Hotspot Y (%)</label>
+              <input id="fHotspotY" type="number" min="0" max="100" value="50" class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50" />
+            </div>
+          </div>
+
+          <p class="text-xs text-ink/50 pt-1">Toạ độ GPS thật của ngôi chùa (dùng cho bản đồ thực địa)</p>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-ink/70 mb-1.5">Vĩ độ (lat)</label>
+              <input id="fLat" type="number" step="0.000001" placeholder="VD: 9.9967" class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-ink/70 mb-1.5">Kinh độ (lng)</label>
+              <input id="fLng" type="number" step="0.000001" placeholder="VD: 106.1667" class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50" />
+            </div>
+          </div>
+
+          <p id="formError" class="hidden text-xs text-terracotta-dark bg-terracotta/10 border border-terracotta/25 rounded-lg px-3 py-2"></p>
+
+          <div class="flex gap-3 pt-2">
+            <button type="submit" id="formSubmitBtn" class="flex-1 py-3 rounded-xl bg-terracotta text-white text-sm font-semibold hover:bg-terracotta-dark transition-colors">
+              Lưu hoa văn
+            </button>
+            <button type="button" id="formCancelBtn" class="px-6 py-3 rounded-xl border border-ink/15 text-sm hover:bg-ink/5 transition-colors">
+              Huỷ
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TOAST THÔNG BÁO ============ -->
+  <div id="toast" class="toast fixed top-5 right-5 z-[200] max-w-xs rounded-xl px-4 py-3 text-sm font-medium shadow-lg"></div>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bảo Tàng Số Kiến Trúc Chùa Khmer | Vĩnh Long</title>
+  <meta name="description" content="Dự án số hóa, bảo tồn và quảng bá nghệ thuật tạo hình trong kiến trúc chùa Khmer tại Vĩnh Long — kho tư liệu di sản được xây dựng và cập nhật lâu dài." />
+
+  <!-- Tailwind CSS qua CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: '#FDF1DC',   // nền sáng ấm
+            beige: '#FBE4BF',
+            gold: '#E8A93B',
+            'gold-dark': '#C9862A',
+            'gold-light': '#FFD680',
+            terracotta: '#E2532D',
+            'terracotta-dark': '#B93D1E',
+            ink: '#4A2416',
+            // Đỏ cam đậm (ember) — dùng cho khối Hero, thay cho xanh lục đậm trước đây
+            ember: '#E2532D',
+            'ember-light': '#EF7A46',
+            'ember-dark': '#B93D1E',
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'serif'],
+            body: ['"Be Vietnam Pro"', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- AOS (Animate On Scroll) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
+
+  <!-- Leaflet (bản đồ địa lý thật) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body class="bg-cream text-ink font-body antialiased overflow-x-hidden">
+
+  <!-- ============ HEADER ============ -->
+  <header class="sticky top-0 z-50 bg-ember border-b border-gold/25">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-3">
+        <span class="w-9 h-9 rounded-full border-2 border-gold flex items-center justify-center text-gold font-serif text-lg">🏛️</span>
+        <span class="font-serif text-base sm:text-lg tracking-wide text-cream">Bảo Tàng Số <span class="text-gold-light italic">Kiến Trúc Khmer</span></span>
+      </a>
+      <nav class="hidden md:flex items-center gap-7 font-body text-sm text-cream/75">
+        <a href="#gioi-thieu" class="hover:text-gold-light transition-colors">Tổng quan</a>
+        <a href="#ban-do-thuc-dia" class="hover:text-gold-light transition-colors">Bản đồ thực địa</a>
+        <a href="#thu-vien" class="hover:text-gold-light transition-colors">Thư viện di sản</a>
+      </nav>
+      <div class="hidden md:flex items-center gap-3">
+        <a href="#thu-vien" class="text-xs font-semibold px-4 py-2 rounded-full border border-cream/30 text-cream hover:bg-cream/10 transition-colors">
+          Xem thêm
+        </a>
+        <a href="admin.html" class="text-xs font-semibold px-4 py-2 rounded-full bg-gold text-ember-dark hover:bg-gold-light transition-colors">
+          Trang quản trị
+        </a>
+      </div>
+      <button id="mobileMenuBtn" class="md:hidden text-cream" aria-label="Mở menu">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
+      </button>
+    </div>
+    <nav id="mobileMenu" class="hidden md:hidden bg-ember-dark border-t border-gold/20 px-6 py-4 flex flex-col gap-4 text-sm text-cream/85">
+      <a href="#gioi-thieu">Tổng quan</a>
+      <a href="#ban-do-thuc-dia">Bản đồ thực địa</a>
+      <a href="#thu-vien">Thư viện di sản</a>
+      <a href="admin.html" class="text-gold-light font-medium">Trang quản trị</a>
+    </nav>
+  </header>
+
+  <!-- ============ HERO: "DI SẢN KHMER" ============ -->
+  <section class="khmer-hero relative overflow-hidden">
+    <!-- Quầng sáng vàng phía sau tiêu đề -->
+    <div class="khmer-hero__glow"></div>
+
+    <!-- Đường viền hoa văn Khmer chạy quanh khối hero -->
+    <div class="khmer-hero__border"></div>
+
+    <div class="max-w-4xl mx-auto px-6 pt-16 sm:pt-20 pb-10 text-center relative">
+      <p class="text-gold-light text-xs sm:text-sm font-semibold tracking-[0.3em] uppercase mb-5" data-aos="fade-down">
+        Dự án số hóa di sản · Tỉnh Vĩnh Long
+      </p>
+
+      <h1 class="khmer-hero__title" data-aos="zoom-in" data-aos-duration="800">DI SẢN KHMER</h1>
+
+      <p class="text-cream/80 text-base sm:text-lg mt-4 max-w-xl mx-auto" data-aos="fade-up" data-aos-delay="150">
+        Cung đường văn hóa và nghệ thuật tạo hình trong kiến trúc chùa Khmer
+      </p>
+
+      <div class="flex flex-wrap gap-3 justify-center mt-8" data-aos="fade-up" data-aos-delay="300">
+        <a href="#thu-vien" class="px-6 py-3 rounded-full bg-gold text-ember-dark text-sm font-semibold hover:bg-gold-light transition-colors">Xem thư viện di sản</a>
+        <a href="#gioi-thieu" class="px-6 py-3 rounded-full border border-cream/35 text-cream text-sm font-semibold hover:bg-cream/10 transition-colors">Tìm hiểu</a>
+      </div>
+    </div>
+
+    <!-- Đường chân trời tháp chùa cách điệu (minh họa gốc, không sao chép) -->
+    <svg class="khmer-hero__skyline" viewBox="0 0 1200 220" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M0 220 L0 150 L60 150 L60 120 L90 120 L90 90 L120 90 L135 60 L150 90 L180 90 L180 120 L210 120 L210 150 L270 150 L270 220 Z" fill="#B08A3E" opacity="0.16"/>
+      <path d="M180 220 L180 160 L230 160 L230 130 L260 130 L280 95 L300 130 L330 130 L330 160 L380 160 L380 220 Z" fill="#D9B968" opacity="0.22"/>
+      <path d="M330 220 L330 140 L400 140 L400 100 L430 100 L460 55 L490 100 L520 100 L520 140 L590 140 L590 220 Z" fill="#B08A3E" opacity="0.30"/>
+      <path d="M520 220 L520 165 L560 165 L560 135 L585 135 L600 105 L615 135 L640 135 L640 165 L680 165 L680 220 Z" fill="#D9B968" opacity="0.20"/>
+      <path d="M640 220 L640 140 L700 140 L700 100 L730 100 L760 55 L790 100 L820 100 L820 140 L880 140 L880 220 Z" fill="#B08A3E" opacity="0.30"/>
+      <path d="M820 220 L820 160 L860 160 L860 130 L885 130 L900 95 L915 130 L940 130 L940 160 L980 160 L980 220 Z" fill="#D9B968" opacity="0.22"/>
+      <path d="M940 220 L940 150 L995 150 L995 120 L1020 120 L1035 90 L1050 120 L1080 120 L1080 150 L1200 150 L1200 220 Z" fill="#B08A3E" opacity="0.16"/>
+      <path d="M0 200 Q150 175 300 200 T600 200 T900 200 T1200 200" stroke="#D9B968" stroke-width="2" fill="none" opacity="0.35"/>
+    </svg>
+
+    <!-- ---- Dải số liệu số hóa (thay cho đồng hồ đếm ngược) ---- -->
+    <div class="khmer-stat-bar relative">
+      <div class="max-w-5xl mx-auto px-6 pt-6 pb-14 sm:pb-16 flex flex-wrap items-center justify-between gap-6">
+        <div class="flex items-center gap-3 text-cream/90 text-sm">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" class="text-gold-light shrink-0"><rect x="2" y="3" width="14" height="13" rx="2"/><path d="M2 7h14M6 1.5v3M12 1.5v3"/></svg>
+          <span>Vĩnh Long</span>
+        </div>
+        <div class="flex items-center gap-4 sm:gap-6">
+          <div class="khmer-stat-block">
+            <span class="khmer-stat-block__num" id="statTemples">0</span>
+            <span class="khmer-stat-block__label">Chùa đã ghi nhận</span>
+          </div>
+          <span class="text-gold-light/40 text-xl font-light">:</span>
+          <div class="khmer-stat-block">
+            <span class="khmer-stat-block__num" id="statMotifs">0</span>
+            <span class="khmer-stat-block__label">Hoa văn số hóa</span>
+          </div>
+          <span class="text-gold-light/40 text-xl font-light">:</span>
+          <div class="khmer-stat-block">
+            <span class="khmer-stat-block__num" id="statCategories">0</span>
+            <span class="khmer-stat-block__label">Loại hình tạo hình</span>
+          </div>
+          <span class="text-gold-light/40 text-xl font-light">:</span>
+          <div class="khmer-stat-block">
+            <span class="khmer-stat-block__num" id="statScans">0</span>
+            <span class="khmer-stat-block__label">Lượt quét QR</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BẢNG ĐIỀU HƯỚNG NHANH (panel trắng nổi trên hero) ============ -->
+  <section class="relative -mt-6 sm:-mt-8 z-10">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="quicknav-panel rounded-3xl px-6 sm:px-10 py-10 sm:py-12" data-aos="fade-up">
+        <div class="flex flex-wrap items-end justify-between gap-4 mb-8">
+          <div class="max-w-lg">
+            <h2 class="font-serif text-2xl sm:text-3xl text-ink mb-2">Tìm hiểu Nghệ thuật Tạo hình Khmer</h2>
+            <p class="text-ink-soft text-sm leading-relaxed">
+              Phù điêu, tượng, hoa văn, hội họa — từng chi tiết đang được số hóa và bổ sung dần theo từng đợt ghi nhận thực địa.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid sm:grid-cols-3 gap-4">
+          <a href="#ban-do-thuc-dia" class="quicknav-card quicknav-card--dark sm:col-span-2 sm:row-span-2 group">
+            <span class="quicknav-card__arrow">↗</span>
+            <span class="quicknav-card__label">Xem<br />Bản đồ thực địa</span>
+          </a>
+          <a href="#thu-vien" class="quicknav-card quicknav-card--light group">
+            <span class="quicknav-card__arrow quicknav-card__arrow--dark">↗</span>
+            <span class="quicknav-card__label quicknav-card__label--dark">Thư viện<br />di sản</span>
+          </a>
+          <a href="#gioi-thieu" class="quicknav-card quicknav-card--light group">
+            <span class="quicknav-card__arrow quicknav-card__arrow--dark">↗</span>
+            <span class="quicknav-card__label quicknav-card__label--dark">Tìm hiểu<br /></span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="vine-divider"></div>
+
+
+  <!-- ============ TỔNG QUAN DỰ ÁN ============ -->
+  <section id="gioi-thieu" class="max-w-6xl mx-auto px-6 py-16 sm:py-24">
+    <div class="max-w-2xl mb-14 text-center mx-auto" data-aos="fade-up">
+      <p class="chapter-tag justify-center mb-4">Chương I · Tổng quan</p>
+      <h2 class="dropcap-title text-3xl sm:text-4xl text-ink leading-snug">
+        <span class="dropcap">V</span>ì sao cần số hóa<br class="hidden sm:block" /> di sản kiến trúc chùa Khmer?
+      </h2>
+      <p class="text-ink-soft mt-5 leading-relaxed">
+        Dưới tác động của thời tiết và quá trình trùng tu thiếu tư liệu gốc, nhiều chi tiết tạo hình quý giá — tượng, phù điêu, hoa văn, bích họa — đứng trước nguy cơ mai một trước khi được ghi nhận có hệ thống. Trong khi đó, thế hệ trẻ địa phương, đặc biệt là học sinh không thuộc dân tộc Khmer, còn hạn chế trong việc nhận biết và giải thích ý nghĩa của các hình tượng này. Vì vậy, dự án xây dựng một nền tảng số kết hợp mã QR, từng bước lưu giữ tư liệu, giải mã ý nghĩa văn hóa và đưa di sản đến gần hơn với cộng đồng, đặc biệt là thế hệ trẻ.
+      </p>
+    </div>
+
+    <div class="grid sm:grid-cols-3 gap-4 mb-14" data-aos="fade-up">
+      <div class="paper-panel rounded-lg px-5 py-4">
+        <p class="text-xs text-ink-soft/70 mb-1 uppercase tracking-wide">Phạm vi hiện tại</p>
+        <p class="text-sm text-ink font-medium">Các chùa Khmer tiêu biểu tại Vĩnh Long, đối chiếu với di sản Khmer tại Trà Vinh; sẽ mở rộng thêm theo từng giai đoạn</p>
+      </div>
+      <div class="paper-panel rounded-lg px-5 py-4">
+        <p class="text-xs text-ink-soft/70 mb-1 uppercase tracking-wide">Đối tượng hướng đến</p>
+        <p class="text-sm text-ink font-medium">Học sinh THPT (khối 10–12) tại các trường có thành phần dân tộc đa dạng</p>
+      </div>
+      <div class="paper-panel rounded-lg px-5 py-4">
+        <p class="text-xs text-ink-soft/70 mb-1 uppercase tracking-wide">Phương pháp thực hiện</p>
+        <p class="text-sm text-ink font-medium">Ghi nhận thực địa, trao đổi cùng sư cả & nghệ nhân, đối chiếu tư liệu, số hóa bằng công nghệ thông tin</p>
+      </div>
+    </div>
+
+    <p class="chapter-tag justify-center mb-4 w-full flex" data-aos="fade-up">Mục tiêu dự án</p>
+    <div class="grid sm:grid-cols-3 gap-6 stagger-grid">
+      <div class="paper-panel rounded-lg p-7" data-aos="fade-up" data-aos-delay="0">
+        <div class="w-11 h-11 rounded-full bg-gold/15 flex items-center justify-center text-gold-dark font-serif text-lg mb-4 border border-gold/30">01</div>
+        <h3 class="font-serif text-xl text-ink mb-2">Ghi nhận & phân loại</h3>
+        <p class="text-ink-soft text-sm leading-relaxed">
+          Ghi nhận, thống kê và phân loại hình tượng, hoa văn, chi tiết tạo hình tiêu biểu
+          trên kiến trúc các chùa Khmer tại Vĩnh Long, từng bước xây dựng kho tư liệu số lâu dài.
+        </p>
+      </div>
+      <div class="paper-panel rounded-lg p-7" data-aos="fade-up" data-aos-delay="150">
+        <div class="w-11 h-11 rounded-full bg-gold/15 flex items-center justify-center text-gold-dark font-serif text-lg mb-4 border border-gold/30">02</div>
+        <h3 class="font-serif text-xl text-ink mb-2">Giải mã ý nghĩa</h3>
+        <p class="text-ink-soft text-sm leading-relaxed">
+          Tìm hiểu và giải mã ý nghĩa biểu tượng, giá trị văn hóa, tôn giáo, tín ngưỡng, lịch sử và
+          thẩm mỹ của từng mô-típ — từ chim thần Krud, rắn thần Naga đến hoa văn ngọn lửa.
+        </p>
+      </div>
+      <div class="paper-panel rounded-lg p-7" data-aos="fade-up" data-aos-delay="300">
+        <div class="w-11 h-11 rounded-full bg-gold/15 flex items-center justify-center text-gold-dark font-serif text-lg mb-4 border border-gold/30">03</div>
+        <h3 class="font-serif text-xl text-ink mb-2">Số hóa & truyền thông</h3>
+        <p class="text-ink-soft text-sm leading-relaxed">
+          Phát triển website tương tác và hệ thống mã QR định danh tại từng cụm di tích, giúp học sinh
+          và du khách dễ dàng tiếp cận, tra cứu và tìm hiểu giá trị văn hóa.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BẢN ĐỒ THỰC ĐỊA (Leaflet — map thật) ============ -->
+  <section id="ban-do-thuc-dia" class="max-w-6xl mx-auto px-6 py-20 sm:py-28">
+    <div class="max-w-2xl mb-10" data-aos="fade-right">
+      <p class="chapter-tag mb-3">Chương II · Bản đồ thực địa</p>
+      <h2 class="dropcap-title text-3xl sm:text-4xl text-ink leading-snug"><span class="dropcap">V</span>ị trí thật các ngôi chùa đã ghi nhận</h2>
+      <p class="text-ink/75 mt-4 leading-relaxed">
+        Bản đồ địa lý thật (OpenStreetMap) đánh dấu các ngôi chùa Khmer tại Vĩnh Long nơi
+        dự án đã và đang ghi nhận dữ liệu. Nhấp vào từng điểm để xem địa chỉ và số chi tiết đã số hóa.
+      </p>
+    </div>
+    <div id="realMap" class="w-full h-[440px] sm:h-[520px] shadow-lg" data-aos="fade-up"></div>
+    <p class="text-xs text-ink/45 mt-3">
+      * Toạ độ ở mức trung tâm xã/huyện theo địa chỉ hành chính thật; sẽ được cập nhật chính xác đến từng ngôi chùa
+      khi đội ngũ dự án đo GPS trực tiếp tại thực địa.
+    </p>
+  </section>
+
+  <div class="vine-divider"></div>
+
+  <!-- ============ THƯ VIỆN DI SẢN ============ -->
+  <section id="thu-vien" class="max-w-6xl mx-auto px-6 py-20 sm:py-28">
+    <div class="flex flex-wrap items-end justify-between gap-6 mb-10">
+      <div class="max-w-xl" data-aos="fade-right">
+        <p class="chapter-tag mb-3">Chương III · Thư viện di sản</p>
+        <h2 class="dropcap-title text-3xl sm:text-4xl text-ink leading-snug"><span class="dropcap">T</span>oàn bộ chi tiết tạo hình đã số hóa</h2>
+      </div>
+      <div id="categoryFilters" class="flex flex-wrap gap-2" data-aos="fade-left"></div>
+    </div>
+
+    <div id="motifGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-grid"></div>
+    <p id="motifEmptyState" class="hidden text-center text-ink/50 py-16">Chưa có dữ liệu nào phù hợp bộ lọc.</p>
+  </section>
+
+  <!-- ============ MODAL CHI TIẾT ============ -->
+  <div id="motifModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-panel bg-cream rounded-2xl max-w-2xl w-full max-h-[88vh] overflow-y-auto relative shadow-2xl">
+      <button id="modalCloseBtn" class="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-ink/70 text-white flex items-center justify-center hover:bg-ink transition-colors" aria-label="Đóng">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l10 10M14 4L4 14" /></svg>
+      </button>
+      <img id="modalImage" src="" alt="" class="w-full h-64 sm:h-80 object-cover" />
+      <div class="p-7 sm:p-8">
+        <span id="modalCategory" class="motif-card__tag mb-3 inline-block"></span>
+        <h3 id="modalTitle" class="font-serif text-2xl sm:text-3xl text-ink mb-3"></h3>
+        <p id="modalDescription" class="text-ink/75 leading-relaxed mb-5"></p>
+        <div class="grid sm:grid-cols-2 gap-4 text-sm border-t border-gold/20 pt-5">
+          <div>
+            <p class="text-ink/45 mb-1">Ngôi chùa ghi nhận</p>
+            <p id="modalTemple" class="text-ink font-medium"></p>
+            <p id="modalAddress" class="text-ink/60 text-xs mt-0.5"></p>
+          </div>
+          <div>
+            <p class="text-ink/45 mb-1">Lượt quét mã QR tại thực địa</p>
+            <p id="modalScans" class="text-ink font-medium"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="bg-ink text-cream/80 py-14">
+    <div class="max-w-6xl mx-auto px-6 grid sm:grid-cols-3 gap-10">
+      <div>
+        <div class="flex items-center gap-3 mb-4">
+          <span class="w-9 h-9 rounded-full border-2 border-gold flex items-center justify-center text-gold font-serif text-lg">🏛️</span>
+          <span class="font-serif text-lg text-cream">Bảo Tàng Số Kiến Trúc Khmer</span>
+        </div>
+        <p class="text-sm text-cream/55 leading-relaxed">
+          Bảo tồn và quảng bá nghệ thuật tạo hình
+          kiến trúc chùa Khmer tại tỉnh Vĩnh Long.
+        </p>
+      </div>
+      <div>
+        <p class="text-sm font-semibold text-cream mb-3">Liên kết</p>
+        <ul class="space-y-2 text-sm text-cream/55">
+          <li><a href="#gioi-thieu" class="hover:text-gold transition-colors">Tổng quan</a></li>
+          <li><a href="#thu-vien" class="hover:text-gold transition-colors">Thư viện di sản</a></li>
+          <li><a href="admin.html" class="hover:text-gold transition-colors">Trang quản trị</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="text-sm font-semibold text-cream mb-3">Kênh truyền thông</p>
+        <ul class="space-y-2 text-sm text-cream/55">
+          <li>Fanpage Facebook dự án</li>
+          <li>Kênh TikTok — video ngắn (Shorts/Reels)</li>
+          <li>Infographic giới thiệu hoa văn tiêu biểu</li>
+        </ul>
+        <p class="text-xs text-cream/40 mt-3">* Liên kết sẽ được cập nhật khi các kênh chính thức đi vào hoạt động.</p>
+      </div>
+    </div>
+    <div class="max-w-6xl mx-auto px-6 mt-10 pt-6 border-t border-cream/10 text-xs text-cream/40">
+      <p>© 2026 Bảo tàng số Kiến trúc Chùa Khmer — Vĩnh Long. Dự án số hóa di sản phát triển lâu dài.</p>
+      <p class="mt-1">
+        Một số dữ liệu và hình ảnh hiện mang tính minh hoạ, sẽ được thay dần
+        bằng tư liệu thực địa chính thức khi dự án tiếp tục cập nhật.
+      </p>
+    </div>
+  </footer>
+
+  <!-- ============ SCRIPTS ============ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

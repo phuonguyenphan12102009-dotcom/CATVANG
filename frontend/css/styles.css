@@ -1,0 +1,542 @@
+/* styles.css
+   Giao diện lấy cảm hứng từ phong cách "vintage infographic / giấy da cổ":
+   nền giấy cũ, viền xé rách, dây leo hoa lá viền trang, tiêu đề chữ hoa lớn kiểu cổ điển,
+   ảnh tư liệu tông sepia, đường nối chấm chấm trang trí. */
+
+:root {
+  --paper: #FDF1DC;        /* nền giấy sáng ấm (kem ngà) */
+  --paper-light: #FFF8EC;  /* giấy sáng hơn cho các khối nội dung */
+  --paper-dark: #FBE4BF;   /* giấy đậm hơn cho tương phản */
+  --ink: #4A2416;          /* nâu đỏ đậm — chữ chính */
+  --ink-soft: #8A4B32;     /* nâu cam nhạt — chữ phụ */
+  --gold: #E8A93B;         /* vàng nắng chủ đạo */
+  --gold-dark: #C9862A;
+  --terracotta: #E2532D;   /* đỏ cam ấm / mực đỏ triện */
+  --terracotta-dark: #B93D1E;
+  --leaf: #E67A8A;         /* hồng ấm thay cho dây lá xanh */
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
+   NỀN GIẤY DA CỔ (paper texture) — dùng cho toàn trang
+   ============================================================ */
+body.bg-cream {
+  background-color: var(--paper) !important;
+  background-image:
+    radial-gradient(circle at 18% 12%, rgba(255,255,255,0.35), transparent 45%),
+    radial-gradient(circle at 82% 78%, rgba(226,83,45,0.06), transparent 55%),
+    repeating-radial-gradient(circle at 0 0, rgba(74,36,22,0.028) 0, rgba(74,36,22,0.028) 1px, transparent 1px, transparent 3px);
+  background-attachment: fixed;
+}
+
+.paper-panel {
+  background: var(--paper-light);
+  border: 1px solid rgba(59,42,27,0.12);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 10px 24px -14px rgba(59,42,27,0.35);
+}
+
+/* ============================================================
+   BĂNG XÉ GIẤY (torn-paper banner) — dùng cho Hero
+   ============================================================ */
+.torn-banner {
+  position: relative;
+  overflow: visible;
+}
+
+.torn-banner__bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: sepia(0.55) saturate(1.25) contrast(1.05) brightness(0.9);
+  clip-path: polygon(
+    0% 0%, 100% 0%, 100% 100%,
+    97% 94%, 94% 100%, 91% 93%, 88% 99%, 85% 92%, 82% 98%,
+    79% 91%, 76% 97%, 73% 90%, 70% 98%, 67% 92%, 64% 96%,
+    61% 90%, 58% 99%, 55% 93%, 52% 97%, 49% 91%, 46% 98%,
+    43% 92%, 40% 96%, 37% 90%, 34% 99%, 31% 93%, 28% 97%,
+    25% 91%, 22% 98%, 19% 92%, 16% 96%, 13% 90%, 10% 99%,
+    7% 93%, 4% 97%, 0% 92%
+  );
+}
+
+.torn-banner__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(59,42,27,0.35) 0%, rgba(59,42,27,0.15) 45%, transparent 75%);
+  clip-path: inherit;
+}
+
+.torn-banner__scrim {
+  clip-path: polygon(
+    0% 0%, 100% 0%, 100% 100%,
+    97% 94%, 94% 100%, 91% 93%, 88% 99%, 85% 92%, 82% 98%,
+    79% 91%, 76% 97%, 73% 90%, 70% 98%, 67% 92%, 64% 96%,
+    61% 90%, 58% 99%, 55% 93%, 52% 97%, 49% 91%, 46% 98%,
+    43% 92%, 40% 96%, 37% 90%, 34% 99%, 31% 93%, 28% 97%,
+    25% 91%, 22% 98%, 19% 92%, 16% 96%, 13% 90%, 10% 99%,
+    7% 93%, 4% 97%, 0% 92%
+  );
+}
+
+/* Chữ ký nhỏ như "@anna_pushkova_" trong ảnh tham chiếu — dùng làm nhãn nghiên cứu */
+.torn-banner__kicker {
+  letter-spacing: 0.18em;
+}
+
+/* ============================================================
+   TIÊU ĐỀ CHỮ HOA LỚN KIỂU CỔ ĐIỂN (drop-cap heading)
+   ============================================================ */
+.dropcap-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.dropcap-title .dropcap {
+  font-size: 1.5em;
+  font-style: italic;
+  font-weight: 600;
+  color: var(--terracotta);
+  padding-right: 0.02em;
+}
+
+.chapter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  color: var(--ink-soft);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.chapter-tag::before,
+.chapter-tag::after {
+  content: "";
+  height: 1px;
+  width: 28px;
+  background: var(--gold);
+}
+
+/* ============================================================
+   HUY HIỆU TRÍCH DẪN (quote medallion) — ảnh tròn + câu trích
+   ============================================================ */
+.quote-medallion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.6rem;
+}
+
+.quote-medallion__frame {
+  width: 76px;
+  height: 76px;
+  border-radius: 9999px;
+  padding: 4px;
+  background: var(--paper-light);
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 0 5px var(--paper), 0 8px 18px -8px rgba(59,42,27,0.5);
+}
+
+.quote-medallion__frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 9999px;
+  filter: sepia(0.5) contrast(1.05);
+}
+
+.quote-medallion__text {
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ink);
+  max-width: 26ch;
+  line-height: 1.5;
+}
+
+.quote-medallion__cite {
+  font-size: 0.68rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.06em;
+}
+
+/* ============================================================
+   NHÁNH LÁ TRANG TRÍ GÓC (corner botanical line-art)
+   ============================================================ */
+.corner-branch {
+  position: absolute;
+  color: var(--leaf);
+  opacity: 0.65;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.corner-branch--tl { top: 0.5rem; left: 0.5rem; width: 130px; }
+.corner-branch--tr { top: 0.5rem; right: 0.5rem; width: 130px; transform: scaleX(-1); }
+
+/* ============================================================
+   DÂY LEO VIỀN NGANG (vine divider) — SVG lặp lại
+   ============================================================ */
+.vine-divider {
+  height: 34px;
+  width: 100%;
+  background-repeat: repeat-x;
+  background-position: center;
+  background-size: 150px 34px;
+  opacity: 0.85;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='34' viewBox='0 0 150 34'><path d='M0 17 Q18 4 37 17 T75 17 T113 17 T150 17' stroke='%23E8A93B' stroke-width='1.6' fill='none'/><ellipse cx='18' cy='9' rx='9' ry='4.5' fill='%23E67A8A' transform='rotate(-28 18 9)'/><ellipse cx='56' cy='25' rx='9' ry='4.5' fill='%23E67A8A' transform='rotate(28 56 25)'/><ellipse cx='94' cy='9' rx='9' ry='4.5' fill='%23E67A8A' transform='rotate(-28 94 9)'/><ellipse cx='132' cy='25' rx='9' ry='4.5' fill='%23E67A8A' transform='rotate(28 132 25)'/><circle cx='37' cy='17' r='2.6' fill='%23E2532D'/><circle cx='113' cy='17' r='2.6' fill='%23E2532D'/></svg>");
+}
+
+/* ============================================================
+   THẺ HOA VĂN — dạng "ảnh tư liệu dán giấy" (vintage clipping)
+   ============================================================ */
+.motif-card {
+  position: relative;
+  border-radius: 0.4rem;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  isolation: isolate;
+  cursor: pointer;
+  background: var(--paper-light);
+  border: 1px solid rgba(59,42,27,0.18);
+  box-shadow: 0 10px 22px -12px rgba(59,42,27,0.45);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.45s ease, rotate 0.45s ease;
+}
+
+.motif-card:nth-child(3n+1) { rotate: -1deg; }
+.motif-card:nth-child(3n+2) { rotate: 0.8deg; }
+.motif-card:nth-child(3n)   { rotate: -0.5deg; }
+
+.motif-card:hover,
+.motif-card:focus-visible {
+  transform: translateY(-6px) scale(1.02);
+  rotate: 0deg;
+  box-shadow: 0 22px 38px -14px rgba(59,42,27,0.55);
+}
+
+.motif-card__bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: sepia(0.35) saturate(1.1) contrast(1.02);
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 0;
+}
+
+.motif-card:hover .motif-card__bg {
+  transform: scale(1.06);
+}
+
+.motif-card__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(30, 20, 10, 0.88) 0%, rgba(30, 20, 10, 0.1) 55%, transparent 75%);
+  z-index: 1;
+}
+
+.motif-card__body {
+  position: absolute;
+  left: 0.6rem;
+  right: 0.6rem;
+  bottom: 0.6rem;
+  z-index: 2;
+  border-radius: 0.3rem;
+  padding: 0.85rem 0.95rem;
+}
+
+/* Nhãn giấy dán ở góc thẻ, thay cho hiệu ứng kính mờ */
+.glass-panel-dark {
+  background: rgba(236, 223, 187, 0.16);
+  border-top: 1px dashed rgba(236, 223, 187, 0.35);
+}
+
+.motif-card__tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--gold);
+  color: #2a1f13;
+  font-weight: 700;
+}
+
+
+/* ============================================================
+   ĐƯỜNG NỐI CHẤM CHẤM TRANG TRÍ (dotted connector)
+   ============================================================ */
+.dotted-connector {
+  border: none;
+  border-top: 2px dotted var(--ink-soft);
+  opacity: 0.55;
+}
+
+/* ============================================================
+   GLASS-PANEL (dùng ở hero/login) — chuyển thành "thẻ giấy cổ"
+   ============================================================ */
+.glass-panel {
+  background: rgba(246, 237, 212, 0.88);
+  border: 1px solid rgba(59,42,27,0.15);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 14px 30px -14px rgba(59,42,27,0.5);
+  backdrop-filter: blur(2px);
+}
+
+/* ============================================================
+   PARALLAX ẢNH NỀN
+   ============================================================ */
+.parallax-layer {
+  will-change: transform;
+  transform: translateY(var(--parallax-y, 0px));
+}
+
+.stagger-grid > * {
+  transition-delay: calc(var(--stagger-index, 0) * 90ms) !important;
+}
+
+/* ============================================================
+   THANH CUỘN
+   ============================================================ */
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: var(--paper); }
+::-webkit-scrollbar-thumb { background: var(--paper-dark); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+/* ============================================================
+   MODAL CHI TIẾT HOA VĂN
+   ============================================================ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(30, 20, 10, 0.75);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.modal-overlay.is-open { opacity: 1; pointer-events: auto; }
+
+.modal-panel {
+  transform: translateY(24px) scale(0.97);
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+  border: 1px solid rgba(59,42,27,0.15);
+}
+
+.modal-overlay.is-open .modal-panel { transform: translateY(0) scale(1); opacity: 1; }
+
+.modal-panel img { filter: sepia(0.3) contrast(1.03); }
+
+/* ============================================================
+   BẢN ĐỒ LEAFLET
+   ============================================================ */
+#realMap {
+  border-radius: 0.5rem;
+  border: 3px solid rgba(176, 138, 62, 0.4);
+  filter: sepia(0.15);
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 0.5rem !important;
+  background: var(--paper-light) !important;
+  font-family: inherit;
+}
+
+.leaflet-popup-tip { background: var(--paper-light) !important; }
+
+/* ============================================================
+   TOAST THÔNG BÁO (admin)
+   ============================================================ */
+.toast {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
+  transform: translateY(-12px);
+  opacity: 0;
+}
+.toast.is-visible { transform: translateY(0); opacity: 1; }
+
+/* ============================================================
+   HERO "DI SẢN KHMER" — banner ấm sáng: đỏ cam - hồng - vàng nắng
+   ============================================================ */
+.khmer-hero {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 214, 128, 0.35), transparent 55%),
+    linear-gradient(180deg, #E2532D 0%, #C9862A 55%, #B93D1E 100%);
+}
+
+.khmer-hero__glow {
+  position: absolute;
+  top: -10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 720px;
+  height: 420px;
+  max-width: 90vw;
+  background: radial-gradient(ellipse at center, rgba(255, 224, 150, 0.45), transparent 70%);
+  filter: blur(10px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.khmer-hero__border {
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgba(217, 185, 104, 0.22);
+  border-radius: 1.5rem;
+  pointer-events: none;
+}
+
+.khmer-hero__title {
+  position: relative;
+  z-index: 1;
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: clamp(2.75rem, 8vw, 5.5rem);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: #FBF6EA;
+  text-shadow: 0 2px 24px rgba(217, 185, 104, 0.35);
+}
+
+.khmer-hero__skyline {
+  display: block;
+  width: 100%;
+  height: 140px;
+  position: relative;
+  z-index: 0;
+}
+
+@media (min-width: 640px) {
+  .khmer-hero__skyline { height: 190px; }
+}
+
+/* ---------- Dải số liệu (thay đồng hồ đếm ngược) ---------- */
+.khmer-stat-bar {
+  background: rgba(74, 24, 14, 0.45);
+  border-top: 1px solid rgba(255, 214, 128, 0.3);
+}
+
+.khmer-stat-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 3.4rem;
+}
+
+.khmer-stat-block__num {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 1.4rem;
+  color: #FBF6EA;
+  line-height: 1;
+}
+
+.khmer-stat-block__label {
+  font-size: 0.62rem;
+  color: rgba(251, 246, 234, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.25rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   BẢNG ĐIỀU HƯỚNG NHANH (panel trắng nổi trên hero)
+   ============================================================ */
+.quicknav-panel {
+  background: var(--paper-light);
+  border: 1px solid rgba(59, 42, 27, 0.1);
+  box-shadow: 0 24px 50px -24px rgba(8, 40, 33, 0.45);
+}
+
+.quicknav-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 1.1rem;
+  padding: 1.5rem;
+  min-height: 8.5rem;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+}
+
+.quicknav-card:hover {
+  transform: translateY(-3px);
+}
+
+.quicknav-card--dark {
+  background: linear-gradient(155deg, #E2532D 0%, #C9862A 65%, #B93D1E 100%);
+  min-height: 12rem;
+}
+
+.quicknav-card--light {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(176, 138, 62, 0.3);
+}
+
+.quicknav-card__arrow {
+  align-self: flex-end;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  background: rgba(251, 246, 234, 0.15);
+  color: #FBF6EA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.quicknav-card__arrow--dark {
+  background: rgba(162, 62, 42, 0.12);
+  color: var(--terracotta-dark);
+}
+
+.quicknav-card:hover .quicknav-card__arrow {
+  transform: rotate(45deg);
+  background: var(--paper-light);
+  color: var(--terracotta-dark);
+}
+
+.quicknav-card:hover .quicknav-card__arrow--dark {
+  background: var(--terracotta);
+  color: #FBF6EA;
+}
+
+.quicknav-card__label {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.35rem;
+  line-height: 1.2;
+  color: #FBF6EA;
+}
+
+.quicknav-card__label--dark {
+  color: var(--ink);
+  font-size: 1.05rem;
+}
