@@ -384,7 +384,7 @@ body.bg-cream {
 .khmer-hero {
   background-image: 
     linear-gradient(180deg, rgba(226, 83, 45, 0.82) 0%, rgba(201, 134, 42, 0.82) 55%, rgba(185, 61, 30, 0.85) 100%),
-    url('../../imgs/background.png'); /* Đường dẫn tới ảnh của bạn */
+    url('../imgs/background.png'); /* Đường dẫn tới ảnh của bạn */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
