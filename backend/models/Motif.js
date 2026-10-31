@@ -18,7 +18,7 @@ const motifSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
-      enum: ["Tượng", "Phù điêu", "Hoa văn", "Hội họa"],
+      enum: ["Tượng", "Phù điêu", "Hoa văn", "Hội họa", "Chùa"],
       default: "Hoa văn",
     },
     imageUrl: {
