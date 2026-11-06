@@ -6,51 +6,43 @@
   <title>Bảo Tàng Số Kiến Trúc Chùa Khmer | Vĩnh Long</title>
   <meta name="description" content="Dự án số hóa, bảo tồn và quảng bá nghệ thuật tạo hình trong kiến trúc chùa Khmer tại Vĩnh Long — kho tư liệu di sản được xây dựng và cập nhật lâu dài." />
 
-  <!-- Tailwind CSS qua CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            cream: '#FDF1DC',   // nền sáng ấm
-            beige: '#FBE4BF',
+            cream: '#FDF1DC',   
             gold: '#E8A93B',
             'gold-dark': '#C9862A',
             'gold-light': '#FFD680',
             terracotta: '#E2532D',
             'terracotta-dark': '#B93D1E',
             ink: '#4A2416',
-            // Đỏ cam đậm (ember) — dùng cho khối Hero, thay cho xanh lục đậm trước đây
             ember: '#E2532D',
             'ember-light': '#EF7A46',
             'ember-dark': '#B93D1E',
           },
           fontFamily: {
-            serif: ['"Playfair Display"', 'serif'],
-            body: ['"Be Vietnam Pro"', 'sans-serif'],
+            heading: ['"Playfair Display", serif'], 
+            body: ['"EB Garamond"', 'serif'],        
+            accent: ['"Lora"', 'serif'],
           },
         },
       },
     };
   </script>
 
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet"
-  />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Lora:ital,wght@0,400..700;1,400..700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
 
-  <!-- AOS (Animate On Scroll) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
 
-  <!-- Leaflet (bản đồ địa lý thật) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <link rel="stylesheet" href="css/styles.css" />
-  <!-- Google tag (gtag.js) -->
+
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-TY2X3RRVPK"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -106,21 +98,19 @@
 
   <!-- ============ HERO: "DI SẢN KHMER" ============ -->
   <section class="khmer-hero relative overflow-hidden">
-    <!-- Quầng sáng vàng phía sau tiêu đề -->
     <div class="khmer-hero__glow"></div>
 
-    <!-- Đường viền hoa văn Khmer chạy quanh khối hero -->
     <div class="khmer-hero__border"></div>
 
     <div class="max-w-4xl mx-auto px-6 pt-16 sm:pt-20 pb-10 text-center relative">
       <p class="text-gold-light text-xs sm:text-sm font-semibold tracking-[0.3em] uppercase mb-5" data-aos="fade-down">
-        Dự án số hóa di sản · Tỉnh Vĩnh Long
+        Số hóa nghệ thuật điêu khắc Khmer
       </p>
 
       <h1 class="khmer-hero__title" data-aos="zoom-in" data-aos-duration="800">DI SẢN KHMER</h1>
 
       <p class="text-cream/80 text-base sm:text-lg mt-4 max-w-xl mx-auto" data-aos="fade-up" data-aos-delay="150">
-        Cung đường văn hóa và nghệ thuật tạo hình trong kiến trúc chùa Khmer
+        Nghệ thuật tạo hình trong kiến trúc chùa Khmer
       </p>
 
       <div class="flex flex-wrap gap-3 justify-center mt-8" data-aos="fade-up" data-aos-delay="300">
@@ -129,7 +119,6 @@
       </div>
     </div>
 
-    <!-- Đường chân trời tháp chùa cách điệu (minh họa gốc, không sao chép) -->
     <svg class="khmer-hero__skyline" viewBox="0 0 1200 220" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <path d="M0 220 L0 150 L60 150 L60 120 L90 120 L90 90 L120 90 L135 60 L150 90 L180 90 L180 120 L210 120 L210 150 L270 150 L270 220 Z" fill="#B08A3E" opacity="0.16"/>
       <path d="M180 220 L180 160 L230 160 L230 130 L260 130 L280 95 L300 130 L330 130 L330 160 L380 160 L380 220 Z" fill="#D9B968" opacity="0.22"/>
@@ -141,7 +130,6 @@
       <path d="M0 200 Q150 175 300 200 T600 200 T900 200 T1200 200" stroke="#D9B968" stroke-width="2" fill="none" opacity="0.35"/>
     </svg>
 
-    <!-- ---- Dải số liệu số hóa (thay cho đồng hồ đếm ngược) ---- -->
     <div class="khmer-stat-bar relative">
       <div class="max-w-5xl mx-auto px-6 pt-6 pb-14 sm:pb-16 flex flex-wrap items-center justify-between gap-6">
         <div class="flex items-center gap-3 text-cream/90 text-sm">
@@ -222,11 +210,11 @@
     <div class="grid sm:grid-cols-3 gap-4 mb-14" data-aos="fade-up">
       <div class="paper-panel rounded-lg px-5 py-4">
         <p class="text-xs text-ink-soft/70 mb-1 uppercase tracking-wide">Phạm vi hiện tại</p>
-        <p class="text-sm text-ink font-medium">Các chùa Khmer tiêu biểu tại Vĩnh Long, đối chiếu với di sản Khmer tại Trà Vinh; sẽ mở rộng thêm theo từng giai đoạn</p>
+        <p class="text-sm text-ink font-medium">Các chùa Khmer tiêu biểu tại phường Đông Thành, tỉnh Vĩnh Long</p>
       </div>
       <div class="paper-panel rounded-lg px-5 py-4">
         <p class="text-xs text-ink-soft/70 mb-1 uppercase tracking-wide">Đối tượng hướng đến</p>
-        <p class="text-sm text-ink font-medium">Học sinh THPT (khối 10–12) tại các trường có thành phần dân tộc đa dạng</p>
+        <p class="text-sm text-ink font-medium">Học sinh, du khác và cộng đồng trên địa bàn Vĩnh Long</p>
       </div>
       <div class="paper-panel rounded-lg px-5 py-4">
         <p class="text-xs text-ink-soft/70 mb-1 uppercase tracking-wide">Phương pháp thực hiện</p>
@@ -241,7 +229,7 @@
         <h3 class="font-serif text-xl text-ink mb-2">Ghi nhận & phân loại</h3>
         <p class="text-ink-soft text-sm leading-relaxed">
           Ghi nhận, thống kê và phân loại hình tượng, hoa văn, chi tiết tạo hình tiêu biểu
-          trên kiến trúc các chùa Khmer tại Vĩnh Long, từng bước xây dựng kho tư liệu số lâu dài.
+          trên kiến trúc các chùa Khmer tại Vĩnh Long, từng bước xây dựng kho tư liệu số.
         </p>
       </div>
       <div class="paper-panel rounded-lg p-7" data-aos="fade-up" data-aos-delay="150">
@@ -256,7 +244,7 @@
         <div class="w-11 h-11 rounded-full bg-gold/15 flex items-center justify-center text-gold-dark font-serif text-lg mb-4 border border-gold/30">03</div>
         <h3 class="font-serif text-xl text-ink mb-2">Số hóa & truyền thông</h3>
         <p class="text-ink-soft text-sm leading-relaxed">
-          Phát triển website tương tác và hệ thống mã QR định danh tại từng cụm di tích, giúp học sinh
+          Phát triển website tương tác giúp học sinh
           và du khách dễ dàng tiếp cận, tra cứu và tìm hiểu giá trị văn hóa.
         </p>
       </div>
@@ -358,11 +346,7 @@
       </div>
     </div>
     <div class="max-w-6xl mx-auto px-6 mt-10 pt-6 border-t border-cream/10 text-xs text-cream/40">
-      <p>© 2026 Bảo tàng số Kiến trúc Chùa Khmer — Vĩnh Long. Dự án số hóa di sản phát triển lâu dài.</p>
-      <p class="mt-1">
-        Một số dữ liệu và hình ảnh hiện mang tính minh hoạ, sẽ được thay dần
-        bằng tư liệu thực địa chính thức khi dự án tiếp tục cập nhật.
-      </p>
+      <p>2026 Bảo tàng số Kiến trúc Chùa Khmer — Vĩnh Long.</p>
     </div>
   </footer>
 

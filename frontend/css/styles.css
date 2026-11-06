@@ -1,23 +1,19 @@
-/* styles.css
-   Giao diện lấy cảm hứng từ phong cách "vintage infographic / giấy da cổ":
-   nền giấy cũ, viền xé rách, dây leo hoa lá viền trang, tiêu đề chữ hoa lớn kiểu cổ điển,
-   ảnh tư liệu tông sepia, đường nối chấm chấm trang trí. */
-
 :root {
-  --paper: #FDF1DC;        /* nền giấy sáng ấm (kem ngà) */
-  --paper-light: #FFF8EC;  /* giấy sáng hơn cho các khối nội dung */
-  --paper-dark: #FBE4BF;   /* giấy đậm hơn cho tương phản */
-  --ink: #4A2416;          /* nâu đỏ đậm — chữ chính */
-  --ink-soft: #8A4B32;     /* nâu cam nhạt — chữ phụ */
-  --gold: #E8A93B;         /* vàng nắng chủ đạo */
+  --paper: #FDF1DC;
+  --paper-light: #FFF8EC;
+  --paper-dark: #FBE4BF;
+  --ink: #4A2416;
+  --ink-soft: #8A4B32;
+  --gold: #E8A93B;
   --gold-dark: #C9862A;
-  --terracotta: #E2532D;   /* đỏ cam ấm / mực đỏ triện */
+  --terracotta: #E2532D;
   --terracotta-dark: #B93D1E;
-  --leaf: #E67A8A;         /* hồng ấm thay cho dây lá xanh */
+  --leaf: #E67A8A;
 }
 
 html {
   scroll-behavior: smooth;
+  font-size: 16px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -30,9 +26,13 @@ html {
   }
 }
 
-/* ============================================================
-   NỀN GIẤY DA CỔ (paper texture) — dùng cho toàn trang
-   ============================================================ */
+body {
+  font-family: "EB Garamond", serif;
+  font-size: 1.25rem;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
 body.bg-cream {
   background-color: var(--paper) !important;
   background-image:
@@ -48,9 +48,6 @@ body.bg-cream {
   box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 10px 24px -14px rgba(59,42,27,0.35);
 }
 
-/* ============================================================
-   BĂNG XÉ GIẤY (torn-paper banner) — dùng cho Hero
-   ============================================================ */
 .torn-banner {
   position: relative;
   overflow: visible;
@@ -80,33 +77,21 @@ body.bg-cream {
   clip-path: inherit;
 }
 
-.torn-banner__scrim {
-  clip-path: polygon(
-    0% 0%, 100% 0%, 100% 100%,
-    97% 94%, 94% 100%, 91% 93%, 88% 99%, 85% 92%, 82% 98%,
-    79% 91%, 76% 97%, 73% 90%, 70% 98%, 67% 92%, 64% 96%,
-    61% 90%, 58% 99%, 55% 93%, 52% 97%, 49% 91%, 46% 98%,
-    43% 92%, 40% 96%, 37% 90%, 34% 99%, 31% 93%, 28% 97%,
-    25% 91%, 22% 98%, 19% 92%, 16% 96%, 13% 90%, 10% 99%,
-    7% 93%, 4% 97%, 0% 92%
-  );
-}
-
-/* Chữ ký nhỏ như "@anna_pushkova_" trong ảnh tham chiếu — dùng làm nhãn nghiên cứu */
 .torn-banner__kicker {
+  font-family: "Playfair Display", serif;
+  font-size: 0.95rem;
   letter-spacing: 0.18em;
+  font-weight: 500;
 }
 
-/* ============================================================
-   TIÊU ĐỀ CHỮ HOA LỚN KIỂU CỔ ĐIỂN (drop-cap heading)
-   ============================================================ */
 .dropcap-title {
-  font-family: 'Playfair Display', serif;
+  font-family: "Playfair Display", serif;
   font-weight: 700;
-  line-height: 1.05;
+  line-height: 1.1;
 }
 
 .dropcap-title .dropcap {
+  font-family: "Playfair Display", serif;
   font-size: 1.5em;
   font-style: italic;
   font-weight: 600;
@@ -118,7 +103,8 @@ body.bg-cream {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 0.72rem;
+  font-family: "Playfair Display", serif;
+  font-size: 1rem;
   letter-spacing: 0.28em;
   color: var(--ink-soft);
   font-weight: 600;
@@ -133,9 +119,6 @@ body.bg-cream {
   background: var(--gold);
 }
 
-/* ============================================================
-   HUY HIỆU TRÍCH DẪN (quote medallion) — ảnh tròn + câu trích
-   ============================================================ */
 .quote-medallion {
   display: flex;
   flex-direction: column;
@@ -163,7 +146,8 @@ body.bg-cream {
 }
 
 .quote-medallion__text {
-  font-size: 0.8rem;
+  font-family: "Playfair Display", serif;
+  font-size: 1.0625rem;
   letter-spacing: 0.03em;
   text-transform: uppercase;
   color: var(--ink);
@@ -172,14 +156,12 @@ body.bg-cream {
 }
 
 .quote-medallion__cite {
-  font-size: 0.68rem;
+  font-family: "Playfair Display", serif;
+  font-size: 0.95rem;
   color: var(--ink-soft);
   letter-spacing: 0.06em;
 }
 
-/* ============================================================
-   NHÁNH LÁ TRANG TRÍ GÓC (corner botanical line-art)
-   ============================================================ */
 .corner-branch {
   position: absolute;
   color: var(--leaf);
@@ -191,9 +173,6 @@ body.bg-cream {
 .corner-branch--tl { top: 0.5rem; left: 0.5rem; width: 130px; }
 .corner-branch--tr { top: 0.5rem; right: 0.5rem; width: 130px; transform: scaleX(-1); }
 
-/* ============================================================
-   DÂY LEO VIỀN NGANG (vine divider) — SVG lặp lại
-   ============================================================ */
 .vine-divider {
   height: 34px;
   width: 100%;
@@ -204,9 +183,6 @@ body.bg-cream {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='34' viewBox='0 0 150 34'><path d='M0 17 Q18 4 37 17 T75 17 T113 17 T150 17' stroke='%23E8A93B' stroke-width='1.6' fill='none'/><ellipse cx='18' cy='9' rx='9' ry='4.5' fill='%23E67A8A' transform='rotate(-28 18 9)'/><ellipse cx='56' cy='25' rx='9' ry='4.5' fill='%23E67A8A' transform='rotate(28 56 25)'/><ellipse cx='94' cy='9' rx='9' ry='4.5' fill='%23E67A8A' transform='rotate(-28 94 9)'/><ellipse cx='132' cy='25' rx='9' ry='4.5' fill='%23E67A8A' transform='rotate(28 132 25)'/><circle cx='37' cy='17' r='2.6' fill='%23E2532D'/><circle cx='113' cy='17' r='2.6' fill='%23E2532D'/></svg>");
 }
 
-/* ============================================================
-   THẺ HOA VĂN — dạng "ảnh tư liệu dán giấy" (vintage clipping)
-   ============================================================ */
 .motif-card {
   position: relative;
   border-radius: 0.4rem;
@@ -262,7 +238,6 @@ body.bg-cream {
   padding: 0.85rem 0.95rem;
 }
 
-/* Nhãn giấy dán ở góc thẻ, thay cho hiệu ứng kính mờ */
 .glass-panel-dark {
   background: rgba(236, 223, 187, 0.16);
   border-top: 1px dashed rgba(236, 223, 187, 0.35);
@@ -270,29 +245,23 @@ body.bg-cream {
 
 .motif-card__tag {
   display: inline-block;
-  font-size: 0.65rem;
+  font-family: "Playfair Display", serif;
+  font-size: 0.9375rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 0.15rem 0.6rem;
+  padding: 0.2rem 0.65rem;
   border-radius: 999px;
   background: var(--gold);
   color: #2a1f13;
   font-weight: 700;
 }
 
-
-/* ============================================================
-   ĐƯỜNG NỐI CHẤM CHẤM TRANG TRÍ (dotted connector)
-   ============================================================ */
 .dotted-connector {
   border: none;
   border-top: 2px dotted var(--ink-soft);
   opacity: 0.55;
 }
 
-/* ============================================================
-   GLASS-PANEL (dùng ở hero/login) — chuyển thành "thẻ giấy cổ"
-   ============================================================ */
 .glass-panel {
   background: rgba(246, 237, 212, 0.88);
   border: 1px solid rgba(59,42,27,0.15);
@@ -300,9 +269,6 @@ body.bg-cream {
   backdrop-filter: blur(2px);
 }
 
-/* ============================================================
-   PARALLAX ẢNH NỀN
-   ============================================================ */
 .parallax-layer {
   will-change: transform;
   transform: translateY(var(--parallax-y, 0px));
@@ -312,17 +278,11 @@ body.bg-cream {
   transition-delay: calc(var(--stagger-index, 0) * 90ms) !important;
 }
 
-/* ============================================================
-   THANH CUỘN
-   ============================================================ */
 ::-webkit-scrollbar { width: 10px; }
 ::-webkit-scrollbar-track { background: var(--paper); }
 ::-webkit-scrollbar-thumb { background: var(--paper-dark); border-radius: 999px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
 
-/* ============================================================
-   MODAL CHI TIẾT HOA VĂN
-   ============================================================ */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -351,9 +311,6 @@ body.bg-cream {
 
 .modal-panel img { filter: sepia(0.3) contrast(1.03); }
 
-/* ============================================================
-   BẢN ĐỒ LEAFLET
-   ============================================================ */
 #realMap {
   border-radius: 0.5rem;
   border: 3px solid rgba(176, 138, 62, 0.4);
@@ -363,14 +320,11 @@ body.bg-cream {
 .leaflet-popup-content-wrapper {
   border-radius: 0.5rem !important;
   background: var(--paper-light) !important;
-  font-family: inherit;
+  font-family: "EB Garamond", serif;
 }
 
 .leaflet-popup-tip { background: var(--paper-light) !important; }
 
-/* ============================================================
-   TOAST THÔNG BÁO (admin)
-   ============================================================ */
 .toast {
   transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
   transform: translateY(-12px);
@@ -378,13 +332,10 @@ body.bg-cream {
 }
 .toast.is-visible { transform: translateY(0); opacity: 1; }
 
-/* ============================================================
-   HERO "DI SẢN KHMER" — banner ấm sáng: đỏ cam - hồng - vàng nắng
-   ============================================================ */
 .khmer-hero {
-  background-image: 
+  background-image:
     linear-gradient(180deg, rgba(226, 83, 45, 0.82) 0%, rgba(201, 134, 42, 0.82) 55%, rgba(185, 61, 30, 0.85) 100%),
-    url('../imgs/background.png'); /* Đường dẫn tới ảnh của bạn */
+    url('../imgs/background.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -415,7 +366,7 @@ body.bg-cream {
 .khmer-hero__title {
   position: relative;
   z-index: 1;
-  font-family: 'Playfair Display', serif;
+  font-family: "Lora", serif;
   font-weight: 700;
   font-size: clamp(2.75rem, 8vw, 5.5rem);
   line-height: 1;
@@ -436,7 +387,6 @@ body.bg-cream {
   .khmer-hero__skyline { height: 190px; }
 }
 
-/* ---------- Dải số liệu (thay đồng hồ đếm ngược) ---------- */
 .khmer-stat-bar {
   background: rgba(74, 24, 14, 0.45);
   border-top: 1px solid rgba(255, 214, 128, 0.3);
@@ -450,26 +400,30 @@ body.bg-cream {
 }
 
 .khmer-stat-block__num {
-  font-family: 'Playfair Display', serif;
+  font-family: "Playfair Display", serif;
   font-weight: 700;
-  font-size: 1.4rem;
+  font-size: 2rem;
   color: #FBF6EA;
   line-height: 1;
 }
 
 .khmer-stat-block__label {
-  font-size: 0.62rem;
-  color: rgba(251, 246, 234, 0.6);
+  font-family: "EB Garamond", serif;
+  font-size: 0.9375rem;
+  color: rgba(251, 246, 234, 0.75);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   margin-top: 0.25rem;
   text-align: center;
   white-space: nowrap;
 }
 
-/* ============================================================
-   BẢNG ĐIỀU HƯỚNG NHANH (panel trắng nổi trên hero)
-   ============================================================ */
+@media (min-width: 640px) {
+  .khmer-stat-block__label {
+    font-size: 1.0625rem;
+  }
+}
+
 .quicknav-panel {
   background: var(--paper-light);
   border: 1px solid rgba(59, 42, 27, 0.1);
@@ -533,33 +487,75 @@ body.bg-cream {
 }
 
 .quicknav-card__label {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.35rem;
-  line-height: 1.2;
+  font-family: "Playfair Display", serif;
+  font-size: 1.6rem;
+  line-height: 1.25;
   color: #FBF6EA;
 }
 
 .quicknav-card__label--dark {
   color: var(--ink);
-  font-size: 1.05rem;
+  font-size: 1.3rem;
 }
+
 .icon-box {
-  width: 50px;           /* Cố định chiều rộng khung icon */
-  height: 50px;          /* Cố định chiều cao khung icon */
-  min-width: 50px;       /* Tránh icon bị co ép khi màn hình nhỏ */
-  border-radius: 50%;    /* Tạo nền tròn */
-  background-color: #f7a838; /* Màu vàng tròn sau icon */
+  width: 50px;
+  height: 50px;
+  min-width: 50px;
+  border-radius: 50%;
+  background-color: #f7a838;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px;          /* Khoảng đệm để icon nhỏ hơn khung tròn */
+  padding: 6px;
   box-sizing: border-box;
 }
 
-/* Giới hạn kích thước cho thẻ img icon */
 .banner-icon {
   width: 100%;
   height: 100%;
-  object-fit: contain;   /* Giữ nguyên tỉ lệ icon không bị méo */
+  object-fit: contain;
   display: block;
+}
+
+p,
+.text-base {
+  font-family: "EB Garamond", serif;
+  font-size: 1.25rem !important;
+  line-height: 1.7 !important;
+}
+
+.text-sm,
+.sm\:text-sm {
+  font-size: 1.1875rem !important;
+  line-height: 1.65 !important;
+}
+
+.text-xs,
+.sm\:text-xs {
+  font-size: 1.0625rem !important;
+  line-height: 1.6 !important;
+}
+
+header nav a {
+  font-size: 1.0625rem !important;
+}
+
+.motif-card__body,
+.motif-card__body p,
+.motif-card__body span {
+  font-size: 1.0625rem;
+  line-height: 1.5;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-content {
+  font-family: "EB Garamond", serif;
+  font-size: 1.125rem !important;
+  line-height: 1.5 !important;
+}
+
+.font-serif,
+.font-heading {
+  font-family: "Playfair Display", serif !important;
 }
