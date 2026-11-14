@@ -127,3 +127,32 @@ rồi cập nhật lại qua form trong `admin.html` để bản đồ phản á
 - **Frontend:** HTML/CSS/JS thuần + Tailwind CSS (CDN), AOS (Animate On Scroll), Leaflet.js
 - **Backend:** Node.js, Express, MongoDB/Mongoose
 - **Bảo mật:** JWT (jsonwebtoken) + bcrypt (bcryptjs) để mã hoá mật khẩu Admin
+
+
+## 7. Tính năng bổ sung (v1.2)
+
+### 7.1. Nội dung chia đoạn
+- `Motif` có thêm trường `sections: [{ heading, body }]`. Trong `admin.html`, form Thêm/Sửa có mục **"Nội dung chi tiết chia theo đoạn"** (thêm, xoá, đổi thứ tự ↑ ↓ từng đoạn).
+- Cửa sổ chi tiết ở trang khách hiển thị lần lượt từng đoạn với tiêu đề nhỏ. Bản ghi cũ chưa có `sections` vẫn hiển thị bình thường: `description` được tự tách đoạn (theo dòng trống/xuống dòng, hoặc gom 2–3 câu nếu là khối chữ dài).
+
+### 7.2. Tìm bài báo liên quan
+- Mục **Tin tức** (`#tin-tuc`) gọi `GET /api/news?q=<từ khoá>&period=<any|1y|30d|7d>`.
+- Backend lấy kết quả từ Google News RSS (không cần API key), cache 10 phút, giới hạn 20 lượt/phút/IP. Chỉ trả tiêu đề, tên báo, ngày và link — không sao chép nội dung bài.
+- Nếu muốn nguồn ổn định hơn (có hợp đồng sử dụng), có thể thay phần gọi RSS trong `routes/newsRoutes.js` bằng NewsAPI / GNews / Bing News Search.
+
+### 7.3. Khách đóng góp ảnh + thông tin, admin duyệt
+Luồng: khách gửi form (mục **Đóng góp tư liệu**) → bài ở trạng thái `pending`, ảnh nằm ở thư mục `khmer-museum/pending` trên Cloudinary → admin vào tab **Đóng góp từ cộng đồng** → **Xem & duyệt** (chỉnh nội dung, chia đoạn, thêm toạ độ GPS) → tạo `Motif` công khai. Nếu **Từ chối**, ảnh bị xoá khỏi Cloudinary.
+
+| Method | Endpoint | JWT | Mô tả |
+|--------|----------|:---:|-------|
+| POST | `/api/submissions` | ❌ | Khách gửi bài (multipart: `image` + các trường chữ). Tối đa 10 lượt/giờ/IP, ảnh ≤ 5MB |
+| GET | `/api/submissions?status=pending\|approved\|rejected` | ✅ | Danh sách đóng góp |
+| GET | `/api/submissions/summary` | ✅ | Số bài theo trạng thái (huy hiệu "chờ duyệt") |
+| POST | `/api/submissions/:id/approve` | ✅ | Duyệt, nhận nội dung đã chỉnh, tạo Motif |
+| POST | `/api/submissions/:id/reject` | ✅ | Từ chối (`{ reason }`), xoá ảnh |
+| DELETE | `/api/submissions/:id` | ✅ | Xoá bản ghi |
+
+Biện pháp chống lạm dụng: giới hạn tốc độ theo IP, ô bẫy bot (honeypot), kiểm tra định dạng ảnh bằng chữ ký file (không chỉ đuôi file), bắt buộc tích đồng ý bản quyền ảnh, email/SĐT người gửi **không** hiển thị công khai, tên chỉ hiện khi người gửi tích đồng ý.
+Đăng nhập admin cũng được giới hạn 10 lần / 15 phút / IP.
+
+> Cần cấu hình `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` trên Render (như tính năng upload ảnh của admin).

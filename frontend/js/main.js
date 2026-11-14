@@ -8,7 +8,7 @@
 const PRODUCTION_API_URL = "https://catvang.onrender.com/api";
 const API_BASE_URL =
   ["localhost", "127.0.0.1"].includes(window.location.hostname)
-    ? "http://localhost:8000/api"
+    ? "http://localhost:5002/api"
     : PRODUCTION_API_URL;
 
 let allMotifs = [];
@@ -20,6 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initMobileMenu();
   initAOS();
   initModal();
+  initNewsSearch();
+  initContributeForm();
   fetchMotifs();
 });
 
@@ -191,7 +193,15 @@ function openMotifModal(motif) {
   document.getElementById("modalImage").alt = motif.title;
   document.getElementById("modalCategory").textContent = motif.category;
   document.getElementById("modalTitle").textContent = motif.title;
-  document.getElementById("modalDescription").textContent = motif.description;
+  renderModalSections(motif);
+
+  const contributorEl = document.getElementById("modalContributor");
+  if (motif.contributor) {
+    contributorEl.textContent = `Tư liệu do ${motif.contributor} đóng góp.`;
+    contributorEl.classList.remove("hidden");
+  } else {
+    contributorEl.classList.add("hidden");
+  }
   document.getElementById("modalTemple").textContent = motif.templeName || "Chưa cập nhật";
   document.getElementById("modalAddress").textContent = motif.templeAddress || "";
   document.getElementById("modalScans").textContent = `${motif.qrScans ?? 0} lượt quét`;
@@ -200,6 +210,7 @@ function openMotifModal(motif) {
   overlay.classList.add("is-open");
   overlay.setAttribute("aria-hidden", "false");
   document.body.style.overflow = "hidden";
+  overlay.querySelector(".modal-panel").scrollTop = 0;
 }
 
 function closeMotifModal() {
@@ -270,6 +281,313 @@ function renderRealMap() {
   if (bounds.length > 0) {
     leafletMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
   }
+}
+
+
+// ============================================================
+// NỘI DUNG CHIA ĐOẠN
+// ============================================================
+// Ưu tiên `motif.sections` (mỗi mục có tiêu đề + nội dung do admin soạn).
+// Bản ghi cũ chỉ có `description` thì tự tách đoạn: theo dòng trống / xuống dòng,
+// hoặc nếu chỉ là một khối chữ dài thì gom khoảng 2-3 câu thành một đoạn.
+function splitIntoParagraphs(text) {
+  const blocks = String(text || "")
+    .split(/\n+/)
+    .map((t) => t.trim())
+    .filter(Boolean);
+  if (blocks.length !== 1 || blocks[0].length <= 280) return blocks;
+
+  const sentences = blocks[0].match(/[^.!?…]+[.!?…]+["”’)]*\s*|[^.!?…]+$/g) || [blocks[0]];
+  const paragraphs = [];
+  let current = "";
+  sentences.forEach((sentence) => {
+    if (current && (current + sentence).length > 260) {
+      paragraphs.push(current.trim());
+      current = "";
+    }
+    current += sentence;
+  });
+  if (current.trim()) paragraphs.push(current.trim());
+  return paragraphs;
+}
+
+function renderModalSections(motif) {
+  const container = document.getElementById("modalSections");
+  container.innerHTML = "";
+
+  const sections = (Array.isArray(motif.sections) ? motif.sections : []).filter((s) => s && (s.body || "").trim());
+  const items = sections.length ? sections : [{ heading: "", body: motif.description }];
+
+  items.forEach((sec) => {
+    const wrap = document.createElement("section");
+    wrap.className = "modal-section";
+
+    if (sec.heading) {
+      const h = document.createElement("h4");
+      h.className = "modal-section__heading";
+      h.textContent = sec.heading;
+      wrap.appendChild(h);
+    }
+
+    const body = document.createElement("div");
+    body.className = "modal-section__body";
+    splitIntoParagraphs(sec.body).forEach((text) => {
+      const p = document.createElement("p");
+      p.textContent = text; // textContent: tự động an toàn trước HTML chèn vào
+      body.appendChild(p);
+    });
+    wrap.appendChild(body);
+    container.appendChild(wrap);
+  });
+}
+
+// ============================================================
+// TÌM BÀI BÁO LIÊN QUAN (gọi GET /api/news)
+// ============================================================
+const NEWS_SUGGESTIONS = [
+  "chùa Khmer Vĩnh Long",
+  "lễ hội Ok Om Bok",
+  "kiến trúc chùa Khmer",
+  "điêu khắc Khmer Nam Bộ",
+  "Chol Chnam Thmay",
+];
+let newsLoadedOnce = false;
+let newsRequestId = 0;
+
+function initNewsSearch() {
+  const form = document.getElementById("newsForm");
+  const chips = document.getElementById("newsChips");
+  const section = document.getElementById("tin-tuc");
+  if (!form || !chips || !section) return;
+
+  NEWS_SUGGESTIONS.forEach((kw) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "news-chip";
+    b.textContent = kw;
+    b.addEventListener("click", () => {
+      document.getElementById("newsQuery").value = kw;
+      searchNews();
+    });
+    chips.appendChild(b);
+  });
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    searchNews();
+  });
+
+  // Chỉ gọi API lần đầu khi khách cuộn tới mục này (đỡ tốn lượt gọi cho người không xem)
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((en) => en.isIntersecting) && !newsLoadedOnce) {
+          io.disconnect();
+          searchNews();
+        }
+      },
+      { rootMargin: "300px" }
+    );
+    io.observe(section);
+  } else {
+    searchNews();
+  }
+}
+
+async function searchNews() {
+  const q = document.getElementById("newsQuery").value.trim();
+  const period = document.getElementById("newsPeriod").value;
+  const grid = document.getElementById("newsGrid");
+  const status = document.getElementById("newsStatus");
+  const btn = document.getElementById("newsSubmitBtn");
+  newsLoadedOnce = true;
+
+  if (q.length < 2) {
+    status.textContent = "Hãy nhập ít nhất 2 ký tự.";
+    return;
+  }
+
+  const myId = ++newsRequestId; // tránh kết quả cũ ghi đè kết quả mới khi bấm liên tiếp
+  btn.disabled = true;
+  status.textContent = `Đang tìm bài báo về “${q}”...`;
+  grid.innerHTML = Array.from({ length: 6 }, () => '<div class="news-skeleton"></div>').join("");
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/news?q=${encodeURIComponent(q)}&period=${encodeURIComponent(period)}`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || "Không lấy được tin tức lúc này.");
+    if (myId !== newsRequestId) return;
+
+    renderNews(data.items || [], q);
+  } catch (err) {
+    if (myId !== newsRequestId) return;
+    grid.innerHTML = "";
+    status.textContent = `${err.message} Bạn thử lại sau ít phút nhé.`;
+  } finally {
+    if (myId === newsRequestId) btn.disabled = false;
+  }
+}
+
+function renderNews(items, q) {
+  const grid = document.getElementById("newsGrid");
+  const status = document.getElementById("newsStatus");
+  grid.innerHTML = "";
+
+  const safe = items.filter((it) => /^https?:\/\//i.test(it.link));
+  if (safe.length === 0) {
+    status.textContent = `Chưa tìm thấy bài báo nào cho “${q}”. Thử từ khoá ngắn hơn hoặc chọn “Mọi lúc”.`;
+    return;
+  }
+  status.textContent = `${safe.length} bài báo cho “${q}”`;
+
+  safe.forEach((it) => {
+    const a = document.createElement("a");
+    a.className = "news-card";
+    a.href = it.link;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+
+    const date = it.publishedAt ? new Date(it.publishedAt).toLocaleDateString("vi-VN") : "";
+    a.innerHTML = `
+      <span class="news-card__meta">
+        ${it.source ? `<span class="news-card__source">${escapeHTML(it.source)}</span>` : ""}
+        ${date ? `<time datetime="${escapeHTML(it.publishedAt)}">${date}</time>` : ""}
+      </span>
+      <h3 class="news-card__title">${escapeHTML(it.title)}</h3>
+      <span class="news-card__go">Đọc bài gốc ↗</span>
+    `;
+    grid.appendChild(a);
+  });
+}
+
+// ============================================================
+// GỬI ĐÓNG GÓP TỪ KHÁCH (POST /api/submissions)
+// ============================================================
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+
+function initContributeForm() {
+  const overlay = document.getElementById("contributeModal");
+  const form = document.getElementById("contributeForm");
+  if (!overlay || !form) return;
+
+  const open = () => {
+    overlay.classList.add("is-open");
+    overlay.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    document.getElementById("cTitle").focus();
+  };
+  const close = () => {
+    overlay.classList.remove("is-open");
+    overlay.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  };
+  const resetForm = () => {
+    form.reset();
+    document.getElementById("cImageName").textContent = "Chưa chọn ảnh";
+    const prev = document.getElementById("cImagePreview");
+    prev.src = "";
+    prev.classList.add("hidden");
+    document.getElementById("contributeError").classList.add("hidden");
+    document.getElementById("contributeSuccess").classList.add("hidden");
+    form.classList.remove("hidden");
+  };
+
+  document.getElementById("openContributeBtn").addEventListener("click", () => {
+    resetForm();
+    open();
+  });
+  document.getElementById("contributeCloseBtn").addEventListener("click", close);
+  document.getElementById("contributeCancelBtn").addEventListener("click", close);
+  document.getElementById("contributeDoneBtn").addEventListener("click", close);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) close();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && overlay.classList.contains("is-open")) close();
+  });
+
+  // Chọn ảnh + xem trước + kiểm tra sớm dung lượng/định dạng
+  const fileInput = document.getElementById("cImage");
+  fileInput.addEventListener("change", () => {
+    const err = document.getElementById("contributeError");
+    const prev = document.getElementById("cImagePreview");
+    const file = fileInput.files?.[0];
+    err.classList.add("hidden");
+
+    if (!file) {
+      document.getElementById("cImageName").textContent = "Chưa chọn ảnh";
+      prev.classList.add("hidden");
+      return;
+    }
+    if (!/^image\/(png|jpe?g|webp|gif)$/.test(file.type)) {
+      fileInput.value = "";
+      return showContributeError("Chỉ nhận ảnh jpg, png, webp hoặc gif.");
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      fileInput.value = "";
+      return showContributeError("Ảnh lớn hơn 5MB. Bạn hãy chọn ảnh nhỏ hơn hoặc nén lại trước khi gửi.");
+    }
+    document.getElementById("cImageName").textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      prev.src = e.target.result;
+      prev.classList.remove("hidden");
+    };
+    reader.readAsDataURL(file);
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    document.getElementById("contributeError").classList.add("hidden");
+
+    const title = document.getElementById("cTitle").value.trim();
+    const description = document.getElementById("cDescription").value.trim();
+    const file = fileInput.files?.[0];
+
+    if (!title) return showContributeError("Bạn chưa nhập tên hoa văn / tượng / ngôi chùa.");
+    if (!description) return showContributeError("Bạn chưa nhập phần giới thiệu.");
+    if (!file) return showContributeError("Bạn chưa chọn ảnh.");
+    if (!document.getElementById("cConsent").checked) {
+      return showContributeError("Hãy tích xác nhận quyền chia sẻ hình ảnh để gửi tư liệu.");
+    }
+
+    const fd = new FormData();
+    fd.append("title", title);
+    fd.append("description", description);
+    fd.append("category", document.getElementById("cCategory").value);
+    fd.append("templeName", document.getElementById("cTempleName").value.trim());
+    fd.append("templeAddress", document.getElementById("cTempleAddress").value.trim());
+    fd.append("submitterName", document.getElementById("cName").value.trim());
+    fd.append("submitterContact", document.getElementById("cContact").value.trim());
+    fd.append("showName", document.getElementById("cShowName").checked ? "true" : "false");
+    fd.append("consent", "true");
+    fd.append("website", document.getElementById("cWebsite").value); // ô bẫy bot
+    fd.append("image", file);
+
+    const btn = document.getElementById("contributeSubmitBtn");
+    btn.disabled = true;
+    btn.textContent = "Đang gửi...";
+    try {
+      const res = await fetch(`${API_BASE_URL}/submissions`, { method: "POST", body: fd });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || "Gửi không thành công, vui lòng thử lại.");
+
+      document.getElementById("contributeSuccessMsg").textContent = data.message || "";
+      form.classList.add("hidden");
+      document.getElementById("contributeSuccess").classList.remove("hidden");
+    } catch (err) {
+      showContributeError(err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Gửi để duyệt";
+    }
+  });
+}
+
+function showContributeError(msg) {
+  const el = document.getElementById("contributeError");
+  el.textContent = msg;
+  el.classList.remove("hidden");
 }
 
 // ============================================================

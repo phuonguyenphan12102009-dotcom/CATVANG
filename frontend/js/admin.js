@@ -8,18 +8,23 @@
 const PRODUCTION_API_URL = "https://catvang.onrender.com/api";
 const API_BASE_URL =
   ["localhost", "127.0.0.1"].includes(window.location.hostname)
-    ? "http://localhost:5001/api"
+    ? "http://localhost:5002/api"
     : PRODUCTION_API_URL;
 const TOKEN_KEY = "khmer_museum_admin_token";
 const ADMIN_KEY = "khmer_museum_admin_info";
 
 let currentMotifs = [];
 let editingMotifId = null;
+let approvingSubmission = null; // có giá trị khi form đang ở chế độ "Duyệt đóng góp"
+let currentSubmissions = [];
+let submissionStatus = "pending";
 
 document.addEventListener("DOMContentLoaded", () => {
   initLoginForm();
   initLogout();
   initMotifFormModal();
+  initTabs();
+  initSubmissionPanel();
 
   const token = getToken();
   if (token) {
@@ -116,6 +121,7 @@ function showDashboard(admin) {
 
   loadStats();
   loadMotifTable();
+  loadSubmissionBadge();
 }
 
 // ============================================================
@@ -239,6 +245,7 @@ function initMotifFormModal() {
 
   form.addEventListener("submit", handleFormSubmit);
   initImageUploadField();
+  initSectionsEditor();
 }
 
 // ============================================================
@@ -331,8 +338,11 @@ function resetImageUploadField(existingUrl) {
 
 function openCreateForm() {
   editingMotifId = null;
+  approvingSubmission = null;
+  setApproveMode(false);
   document.getElementById("formModalTitle").textContent = "Thêm hoa văn mới";
   document.getElementById("motifForm").reset();
+  renderSectionsEditor([]);
   document.getElementById("fHotspotX").value = 50;
   document.getElementById("fHotspotY").value = 50;
   document.getElementById("formError").classList.add("hidden");
@@ -345,7 +355,10 @@ function openEditForm(id) {
   if (!motif) return;
 
   editingMotifId = id;
+  approvingSubmission = null;
+  setApproveMode(false);
   document.getElementById("formModalTitle").textContent = "Chỉnh sửa hoa văn";
+  renderSectionsEditor(motif.sections || []);
   document.getElementById("motifId").value = motif._id;
   document.getElementById("fTitle").value = motif.title || "";
   document.getElementById("fDescription").value = motif.description || "";
@@ -371,6 +384,7 @@ function openFormModal() {
 }
 
 function closeFormModal() {
+  approvingSubmission = null;
   const overlay = document.getElementById("motifFormModal");
   overlay.classList.remove("is-open");
   overlay.setAttribute("aria-hidden", "true");
@@ -391,6 +405,7 @@ async function handleFormSubmit(e) {
   const payload = {
     title: document.getElementById("fTitle").value.trim(),
     description: document.getElementById("fDescription").value.trim(),
+    sections: collectSections(),
     category: document.getElementById("fCategory").value,
     imageUrl: document.getElementById("fImageUrl").value.trim(),
     templeName: document.getElementById("fTempleName").value.trim(),
@@ -406,24 +421,36 @@ async function handleFormSubmit(e) {
   };
 
   try {
-    const isEditing = Boolean(editingMotifId);
-    const res = await authFetch(isEditing ? `/motifs/${editingMotifId}` : "/motifs", {
-      method: isEditing ? "PUT" : "POST",
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Không thể lưu hoa văn");
+    const isApproving = Boolean(approvingSubmission);
+    const isEditing = !isApproving && Boolean(editingMotifId);
 
-    showToast(isEditing ? "Đã cập nhật hoa văn thành công" : "Đã thêm hoa văn mới thành công", "success");
+    let path = "/motifs";
+    let method = "POST";
+    if (isApproving) path = `/submissions/${approvingSubmission._id}/approve`;
+    else if (isEditing) {
+      path = `/motifs/${editingMotifId}`;
+      method = "PUT";
+    }
+
+    const res = await authFetch(path, { method, body: JSON.stringify(payload) });
+    const data = await res.json();
+    if (!res.ok) {
+      if (isApproving && res.status === 409) await loadSubmissions(); // bài đã được xử lý -> làm mới danh sách
+      throw new Error(data.message || "Không thể lưu hoa văn");
+    }
+
+    showToast(
+      isApproving ? "Đã duyệt và đăng tải" : isEditing ? "Đã cập nhật hoa văn thành công" : "Đã thêm hoa văn mới thành công",
+      "success"
+    );
     closeFormModal();
-    await loadMotifTable();
-    await loadStats();
+    await Promise.all([loadMotifTable(), loadStats(), loadSubmissionBadge(), isApproving ? loadSubmissions() : null]);
   } catch (err) {
     errorEl.textContent = err.message;
     errorEl.classList.remove("hidden");
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = "Lưu hoa văn";
+    submitBtn.textContent = approvingSubmission ? "Duyệt & đăng" : "Lưu hoa văn";
   }
 }
 
@@ -443,6 +470,255 @@ async function handleDelete(id) {
   } catch (err) {
     showToast(err.message, "error");
   }
+}
+
+
+// ============================================================
+// TRÌNH SOẠN NỘI DUNG CHIA ĐOẠN (tiêu đề nhỏ + nội dung)
+// ============================================================
+function initSectionsEditor() {
+  const editor = document.getElementById("sectionsEditor");
+  document.getElementById("addSectionBtn").addEventListener("click", () => {
+    const row = addSectionRow("", "");
+    row.querySelector(".sec-heading").focus();
+  });
+
+  // Nút ↑ ↓ ✕ trên từng đoạn (event delegation)
+  editor.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-sec-action]");
+    if (!btn) return;
+    const row = btn.closest("[data-section-row]");
+    const action = btn.dataset.secAction;
+    if (action === "remove") row.remove();
+    if (action === "up" && row.previousElementSibling) editor.insertBefore(row, row.previousElementSibling);
+    if (action === "down" && row.nextElementSibling) editor.insertBefore(row.nextElementSibling, row);
+  });
+}
+
+function addSectionRow(heading, body) {
+  const row = document.createElement("div");
+  row.setAttribute("data-section-row", "");
+  row.className = "rounded-xl border border-gold/30 bg-white/50 p-3 space-y-2";
+  row.innerHTML = `
+    <div class="flex gap-2">
+      <input class="sec-heading flex-1 min-w-0 rounded-lg border border-gold/30 bg-white/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50"
+        list="sectionHeadingList" maxlength="120" placeholder="Tiêu đề đoạn (VD: Ý nghĩa biểu tượng)" />
+      <button type="button" data-sec-action="up" class="w-8 rounded-lg border border-ink/15 text-xs hover:bg-ink/5" aria-label="Chuyển lên">↑</button>
+      <button type="button" data-sec-action="down" class="w-8 rounded-lg border border-ink/15 text-xs hover:bg-ink/5" aria-label="Chuyển xuống">↓</button>
+      <button type="button" data-sec-action="remove" class="w-8 rounded-lg border border-terracotta/30 text-terracotta text-xs hover:bg-terracotta/10" aria-label="Xoá đoạn">✕</button>
+    </div>
+    <textarea class="sec-body w-full rounded-lg border border-gold/30 bg-white/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50"
+      rows="3" maxlength="4000" placeholder="Nội dung đoạn này..."></textarea>
+  `;
+  row.querySelector(".sec-heading").value = heading || "";
+  row.querySelector(".sec-body").value = body || "";
+  document.getElementById("sectionsEditor").appendChild(row);
+  return row;
+}
+
+function renderSectionsEditor(sections) {
+  document.getElementById("sectionsEditor").innerHTML = "";
+  (sections || []).forEach((sec) => addSectionRow(sec.heading, sec.body));
+}
+
+function collectSections() {
+  return [...document.querySelectorAll("#sectionsEditor [data-section-row]")]
+    .map((row) => ({
+      heading: row.querySelector(".sec-heading").value.trim(),
+      body: row.querySelector(".sec-body").value.trim(),
+    }))
+    .filter((sec) => sec.body); // bỏ đoạn trống
+}
+
+// ============================================================
+// TAB: CHI TIẾT TẠO HÌNH  |  ĐÓNG GÓP TỪ CỘNG ĐỒNG
+// ============================================================
+function initTabs() {
+  document.getElementById("tabMotifs").addEventListener("click", () => switchTab("motifs"));
+  document.getElementById("tabSubmissions").addEventListener("click", () => switchTab("submissions"));
+}
+
+function switchTab(name) {
+  const isMotifs = name === "motifs";
+  document.getElementById("panelMotifs").classList.toggle("hidden", !isMotifs);
+  document.getElementById("panelSubmissions").classList.toggle("hidden", isMotifs);
+  const tabM = document.getElementById("tabMotifs");
+  const tabS = document.getElementById("tabSubmissions");
+  tabM.classList.toggle("is-active", isMotifs);
+  tabS.classList.toggle("is-active", !isMotifs);
+  tabM.setAttribute("aria-selected", String(isMotifs));
+  tabS.setAttribute("aria-selected", String(!isMotifs));
+  if (!isMotifs) loadSubmissions();
+}
+
+// ============================================================
+// DUYỆT ĐÓNG GÓP TỪ CỘNG ĐỒNG
+// ============================================================
+function initSubmissionPanel() {
+  document.querySelectorAll("#submissionFilters .sub-filter").forEach((btn) =>
+    btn.addEventListener("click", () => {
+      submissionStatus = btn.dataset.status;
+      document.querySelectorAll("#submissionFilters .sub-filter").forEach((b) =>
+        b.classList.toggle("is-active", b === btn)
+      );
+      loadSubmissions();
+    })
+  );
+
+  document.getElementById("submissionList").addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-sub-action]");
+    if (!btn) return;
+    const id = btn.dataset.id;
+    if (btn.dataset.subAction === "approve") openApproveForm(id);
+    if (btn.dataset.subAction === "reject") handleReject(id);
+    if (btn.dataset.subAction === "delete") handleSubmissionDelete(id);
+  });
+}
+
+async function loadSubmissionBadge() {
+  try {
+    const res = await authFetch("/submissions/summary");
+    const sum = await res.json();
+    const badge = document.getElementById("pendingBadge");
+    badge.textContent = sum.pending;
+    badge.classList.toggle("hidden", !sum.pending);
+  } catch (err) {
+    console.warn("Không thể tải số bài chờ duyệt:", err.message);
+  }
+}
+
+async function loadSubmissions() {
+  const list = document.getElementById("submissionList");
+  const empty = document.getElementById("submissionEmpty");
+  const errorEl = document.getElementById("adminError");
+  errorEl.classList.add("hidden");
+  try {
+    const res = await authFetch(`/submissions?status=${submissionStatus}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Lỗi tải danh sách");
+    currentSubmissions = data;
+    renderSubmissions();
+  } catch (err) {
+    list.innerHTML = "";
+    empty.classList.add("hidden");
+    errorEl.textContent = "Không thể tải đóng góp: " + err.message;
+    errorEl.classList.remove("hidden");
+  }
+}
+
+function renderSubmissions() {
+  const list = document.getElementById("submissionList");
+  const empty = document.getElementById("submissionEmpty");
+  list.innerHTML = "";
+  empty.classList.toggle("hidden", currentSubmissions.length > 0);
+
+  currentSubmissions.forEach((sub) => {
+    const imgOk = /^https:\/\//.test(sub.imageUrl || "");
+    const when = new Date(sub.createdAt).toLocaleString("vi-VN");
+    const sender = sub.submitterName ? escapeHTML(sub.submitterName) : "Ẩn danh";
+    const contact = sub.submitterContact ? escapeHTML(sub.submitterContact) : "—";
+
+    let actions = "";
+    if (sub.status === "pending") {
+      actions = `
+        <button data-sub-action="approve" data-id="${sub._id}" class="text-xs font-semibold px-4 py-2 rounded-full bg-terracotta text-white hover:bg-terracotta-dark transition-colors">Xem &amp; duyệt</button>
+        <button data-sub-action="reject" data-id="${sub._id}" class="text-xs px-4 py-2 rounded-full border border-terracotta/30 text-terracotta hover:bg-terracotta/10 transition-colors">Từ chối</button>`;
+    } else {
+      actions = `<button data-sub-action="delete" data-id="${sub._id}" class="text-xs px-4 py-2 rounded-full border border-ink/15 hover:bg-ink/5 transition-colors">Xoá bản ghi</button>`;
+    }
+
+    let note = "";
+    if (sub.status === "approved") note = `<p class="text-xs text-gold-dark mt-2">Đã đăng bởi ${escapeHTML(sub.reviewedBy)} — ${new Date(sub.reviewedAt).toLocaleDateString("vi-VN")}</p>`;
+    if (sub.status === "rejected") note = `<p class="text-xs text-terracotta-dark mt-2">Đã từ chối${sub.rejectReason ? `: ${escapeHTML(sub.rejectReason)}` : ""} (ảnh đã xoá khỏi kho lưu trữ)</p>`;
+
+    const card = document.createElement("article");
+    card.className = "rounded-2xl border border-gold/20 bg-white/60 p-4 sm:p-5 grid sm:grid-cols-[170px_1fr] gap-4";
+    card.innerHTML = `
+      ${
+        sub.status === "rejected" || !imgOk
+          ? `<div class="w-full h-32 sm:h-full min-h-[8rem] rounded-xl bg-beige/60 flex items-center justify-center text-xs text-ink/40">Không có ảnh</div>`
+          : `<a href="${sub.imageUrl}" target="_blank" rel="noopener noreferrer"><img src="${sub.imageUrl}" alt="" class="w-full h-32 sm:h-full min-h-[8rem] object-cover rounded-xl" /></a>`
+      }
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-2 mb-1">
+          <span class="text-xs px-2.5 py-1 rounded-full bg-gold/15 text-gold-dark">${escapeHTML(sub.category)}</span>
+          <span class="text-xs text-ink/45">${when}</span>
+        </div>
+        <h3 class="font-serif text-lg text-ink">${escapeHTML(sub.title)}</h3>
+        <p class="text-xs text-ink/55 mb-2">${escapeHTML(sub.templeName || "Chưa ghi tên chùa")}${sub.templeAddress ? " — " + escapeHTML(sub.templeAddress) : ""}</p>
+        <p class="text-sm text-ink/75 leading-relaxed whitespace-pre-line line-clamp-4">${escapeHTML(sub.description)}</p>
+        <p class="text-xs text-ink/50 mt-2">Người gửi: <strong>${sender}</strong> · Liên hệ: ${contact} · Ghi tên khi đăng: ${sub.showName ? "có" : "không"}</p>
+        ${note}
+        <div class="flex flex-wrap gap-2 mt-3">${actions}</div>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+// Mở form Thêm/Sửa ở chế độ "Duyệt": điền sẵn từ bài đóng góp, admin chỉnh + bổ sung GPS rồi đăng
+function openApproveForm(id) {
+  const sub = currentSubmissions.find((x) => x._id === id);
+  if (!sub) return;
+
+  openCreateForm(); // reset form về trạng thái sạch
+  approvingSubmission = sub;
+  setApproveMode(true);
+
+  document.getElementById("formModalTitle").textContent = "Duyệt đóng góp";
+  document.getElementById("fTitle").value = sub.title || "";
+  document.getElementById("fDescription").value = sub.description || "";
+  document.getElementById("fCategory").value = sub.category || "Hoa văn";
+  document.getElementById("fImageUrl").value = sub.imageUrl || "";
+  document.getElementById("fTempleName").value = sub.templeName || "";
+  document.getElementById("fTempleAddress").value = sub.templeAddress || "";
+  resetImageUploadField(sub.imageUrl || null);
+
+  document.getElementById("approveInfo").innerHTML =
+    `Người gửi: <strong>${sub.submitterName ? escapeHTML(sub.submitterName) : "Ẩn danh"}</strong> · ` +
+    `Liên hệ: ${sub.submitterContact ? escapeHTML(sub.submitterContact) : "—"} · ` +
+    `Ghi tên khi đăng: ${sub.showName ? "có" : "không"}.<br />` +
+    `Kiểm tra và chỉnh nội dung, tách đoạn nếu cần, bổ sung toạ độ GPS rồi bấm “Duyệt &amp; đăng”.`;
+}
+
+// Bật/tắt giao diện chế độ duyệt (khoá ô ảnh vì ảnh đã được người gửi tải lên)
+function setApproveMode(on) {
+  document.getElementById("approveInfo").classList.toggle("hidden", !on);
+  document.getElementById("formSubmitBtn").textContent = on ? "Duyệt & đăng" : "Lưu hoa văn";
+  document.getElementById("fImageFile").disabled = on;
+  document.getElementById("fImageUrl").readOnly = on;
+  document.querySelector('label[for="fImageFile"]').classList.toggle("opacity-40", on);
+}
+
+async function handleReject(id) {
+  const sub = currentSubmissions.find((x) => x._id === id);
+  const reason = prompt(
+    `Từ chối "${sub?.title || "bài này"}"?\nẢnh sẽ bị xoá khỏi kho lưu trữ.\n\nLý do (không bắt buộc, chỉ lưu nội bộ):`
+  );
+  if (reason === null) return; // bấm Huỷ
+
+  try {
+    const res = await authFetch(`/submissions/${id}/reject`, { method: "POST", body: JSON.stringify({ reason }) });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Không thể từ chối");
+    showToast("Đã từ chối đóng góp", "success");
+  } catch (err) {
+    showToast(err.message, "error");
+  }
+  await Promise.all([loadSubmissions(), loadSubmissionBadge()]);
+}
+
+async function handleSubmissionDelete(id) {
+  if (!confirm("Xoá bản ghi này? Hành động không thể hoàn tác.")) return;
+  try {
+    const res = await authFetch(`/submissions/${id}`, { method: "DELETE" });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Không thể xoá");
+    showToast("Đã xoá", "success");
+  } catch (err) {
+    showToast(err.message, "error");
+  }
+  await Promise.all([loadSubmissions(), loadSubmissionBadge()]);
 }
 
 // ============================================================

@@ -48,6 +48,7 @@ router.post("/motifs", protect, async (req, res) => {
     const {
       title,
       description,
+      sections,
       category,
       imageUrl,
       hotspotCoordinates,
@@ -59,6 +60,7 @@ router.post("/motifs", protect, async (req, res) => {
     const newMotif = new Motif({
       title,
       description,
+      sections,
       category,
       imageUrl,
       hotspotCoordinates,

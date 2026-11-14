@@ -70,6 +70,8 @@
         <a href="#gioi-thieu" class="hover:text-gold-light transition-colors">Tổng quan</a>
         <a href="#ban-do-thuc-dia" class="hover:text-gold-light transition-colors">Bản đồ thực địa</a>
         <a href="#thu-vien" class="hover:text-gold-light transition-colors">Thư viện di sản</a>
+        <a href="#tin-tuc" class="hover:text-gold-light transition-colors">Tin tức</a>
+        <a href="#dong-gop" class="hover:text-gold-light transition-colors">Đóng góp tư liệu</a>
         <a href="mailto:catvang2026@gmail.com" class="hover:text-gold-light transition-colors" target="_blank">Góp ý</a>
         <a href="https://catvangcatalogue.vercel.app/" class="hover:text-gold-light transition-colors" target="_blank">Catalogue</a>
       </nav>
@@ -89,6 +91,8 @@
       <a href="#gioi-thieu">Tổng quan</a>
       <a href="#ban-do-thuc-dia">Bản đồ thực địa</a>
       <a href="#thu-vien">Thư viện di sản</a>
+      <a href="#tin-tuc">Tin tức</a>
+      <a href="#dong-gop">Đóng góp tư liệu</a>
       <a href="https://catvangcatalogue.vercel.app/" class="hover:text-gold-light transition-colors" target="_blank">Catalogue</a>
       <a href="mailto:catvang2026@gmail.com" class="hover:text-gold-light transition-colors" target="_blank">Góp ý</a>
       <a href="admin.html" class="text-gold-light font-medium">Trang quản trị</a>
@@ -271,13 +275,158 @@
       <div class="max-w-xl" data-aos="fade-right">
         <p class="chapter-tag mb-3">Chương III · Thư viện di sản</p>
         <h2 class="dropcap-title text-3xl sm:text-4xl text-ink leading-snug"><span class="dropcap">T</span>oàn bộ chi tiết tạo hình đã số hóa</h2>
-      </div>
+      </div>  
       <div id="categoryFilters" class="flex flex-wrap gap-2" data-aos="fade-left"></div>
     </div>
 
-    <div id="motifGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-grid"></div>
+    <div id="motifGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-grid"></div> 
     <p id="motifEmptyState" class="hidden text-center text-ink/50 py-16">Chưa có dữ liệu nào phù hợp bộ lọc.</p>
   </section>
+
+  <div class="vine-divider"></div>
+
+  <!-- ============ TIN TỨC & BÀI BÁO ============ -->
+  <section id="tin-tuc" class="max-w-6xl mx-auto px-6 py-20 sm:py-28">
+    <div class="max-w-2xl mb-8" data-aos="fade-right">
+      <p class="chapter-tag mb-3">Chương IV · Tin tức &amp; bài báo</p>
+      <h2 class="dropcap-title text-3xl sm:text-4xl text-ink leading-snug"><span class="dropcap">T</span>ìm bài báo về chùa Khmer</h2>
+      <p class="text-ink/75 mt-4 leading-relaxed">
+        Nhập từ khoá để tìm các bài báo liên quan trên Internet. Kết quả được tổng hợp từ Google News;
+        nhấn vào tiêu đề để đọc bài gốc trên trang của tòa soạn.
+      </p>
+    </div>
+
+    <form id="newsForm" class="flex flex-wrap gap-3 mb-4" role="search" data-aos="fade-up">
+      <label class="sr-only" for="newsQuery">Từ khoá tìm bài báo</label>
+      <input id="newsQuery" type="search" maxlength="100" value="chùa Khmer Vĩnh Long" placeholder="VD: lễ hội Ok Om Bok, kiến trúc chùa Khmer..."
+        class="flex-1 min-w-[220px] rounded-full border border-gold/30 bg-white/70 px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50" />
+      <label class="sr-only" for="newsPeriod">Khoảng thời gian</label>
+      <select id="newsPeriod" class="rounded-full border border-gold/30 bg-white/70 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50">
+        <option value="any">Mọi lúc</option>
+        <option value="1y">1 năm qua</option>
+        <option value="30d">30 ngày qua</option>
+        <option value="7d">7 ngày qua</option>
+      </select>
+      <button type="submit" id="newsSubmitBtn" class="px-6 py-3 rounded-full bg-terracotta text-white text-sm font-semibold hover:bg-terracotta-dark transition-colors">Tìm bài báo</button>
+    </form>
+
+    <div id="newsChips" class="flex flex-wrap gap-2 mb-8"></div>
+
+    <p id="newsStatus" class="text-sm text-ink/60 mb-4" aria-live="polite"></p>
+    <div id="newsGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    <p class="text-xs text-ink/45 mt-6">Bài viết thuộc bản quyền của các tòa soạn. Dự án chỉ dẫn liên kết, không sao chép nội dung.</p>
+  </section>
+
+  <div class="vine-divider"></div>
+
+  <!-- ============ ĐÓNG GÓP TƯ LIỆU ============ -->
+  <section id="dong-gop" class="max-w-4xl mx-auto px-6 py-20 sm:py-28">
+    <div class="paper-panel rounded-3xl px-7 sm:px-12 py-10 sm:py-12 text-center" data-aos="fade-up">
+      <p class="chapter-tag justify-center mb-4">Chương V · Đóng góp tư liệu</p>
+      <h2 class="font-serif text-2xl sm:text-3xl text-ink mb-4">Bạn có ảnh hoặc câu chuyện về chùa Khmer?</h2>
+      <p class="text-ink/75 leading-relaxed max-w-xl mx-auto mb-7">
+        Gửi ảnh kèm vài dòng giới thiệu về một ngôi chùa, bức tượng hay hoa văn mà bạn biết.
+        Quản trị viên sẽ xem lại, chỉnh sửa nếu cần rồi mới đăng lên thư viện.
+      </p>
+      <button id="openContributeBtn" type="button" class="px-7 py-3 rounded-full bg-terracotta text-white text-sm font-semibold hover:bg-terracotta-dark transition-colors">Gửi tư liệu</button>
+    </div>
+  </section>
+
+  <!-- ============ MODAL GỬI ĐÓNG GÓP ============ -->
+  <div id="contributeModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-panel bg-cream rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="contributeTitle">
+      <div class="p-7 sm:p-8">
+        <div class="flex items-center justify-between mb-5">
+          <h3 id="contributeTitle" class="font-serif text-2xl text-ink">Gửi tư liệu</h3>
+          <button id="contributeCloseBtn" type="button" class="w-9 h-9 rounded-full bg-ink/5 hover:bg-ink/10 flex items-center justify-center transition-colors" aria-label="Đóng">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l10 10M13 3L3 13" /></svg>
+          </button>
+        </div>
+
+        <div id="contributeSuccess" class="hidden text-center py-8">
+          <p class="font-serif text-xl text-ink mb-2">Đã nhận tư liệu của bạn</p>
+          <p id="contributeSuccessMsg" class="text-sm text-ink/70 mb-6"></p>
+          <button id="contributeDoneBtn" type="button" class="px-6 py-2.5 rounded-full bg-ink text-cream text-sm hover:bg-ink/85 transition-colors">Đóng</button>
+        </div>
+
+        <form id="contributeForm" class="space-y-4" novalidate>
+          <!-- Ô bẫy bot: người thật không nhìn thấy và không điền -->
+          <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden" aria-hidden="true">
+            <label>Website <input type="text" name="website" id="cWebsite" tabindex="-1" autocomplete="off" /></label>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-ink/70 mb-1.5" for="cTitle">Tên hoa văn / tượng / ngôi chùa *</label>
+            <input id="cTitle" maxlength="150" required class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-ink/70 mb-1.5" for="cCategory">Loại *</label>
+            <select id="cCategory" class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50">
+              <option value="Chùa">Chùa</option>
+              <option value="Tượng">Tượng</option>
+              <option value="Phù điêu">Phù điêu</option>
+              <option value="Hoa văn" selected>Hoa văn</option>
+              <option value="Hội họa">Hội họa</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-ink/70 mb-1.5" for="cDescription">Giới thiệu *</label>
+            <textarea id="cDescription" rows="5" maxlength="4000" required placeholder="Hình ảnh này ở đâu, trông như thế nào, bạn biết gì về ý nghĩa của nó? Có thể xuống dòng để chia thành nhiều đoạn."
+              class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50"></textarea>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-ink/70 mb-1.5" for="cTempleName">Tên chùa</label>
+              <input id="cTempleName" maxlength="150" class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-ink/70 mb-1.5" for="cTempleAddress">Địa chỉ</label>
+              <input id="cTempleAddress" maxlength="300" class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-ink/70 mb-1.5">Hình ảnh * <span class="text-ink/40 font-normal">(jpg, png, webp, gif — tối đa 5MB)</span></label>
+            <div class="flex items-center gap-3 mb-2">
+              <label for="cImage" class="cursor-pointer text-xs font-semibold px-3 py-2 rounded-lg border border-gold/40 bg-white/70 hover:bg-gold/10 transition-colors whitespace-nowrap">Chọn ảnh từ máy</label>
+              <input id="cImage" type="file" accept="image/png, image/jpeg, image/webp, image/gif" class="sr-only" />
+              <span id="cImageName" class="text-xs text-ink/50 truncate">Chưa chọn ảnh</span>
+            </div>
+            <img id="cImagePreview" src="" alt="Ảnh xem trước" class="hidden w-full h-40 object-cover rounded-lg border border-gold/20" />
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-ink/70 mb-1.5" for="cName">Tên của bạn</label>
+              <input id="cName" maxlength="100" class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-ink/70 mb-1.5" for="cContact">Email / SĐT liên hệ</label>
+              <input id="cContact" maxlength="150" class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50" />
+            </div>
+          </div>
+          <p class="form-hint -mt-2">Thông tin liên hệ chỉ để quản trị viên hỏi thêm khi cần, không hiển thị công khai.</p>
+
+          <label class="flex items-start gap-2 text-xs text-ink/70">
+            <input id="cShowName" type="checkbox" class="mt-0.5" /> Ghi tên tôi ở phần “Tư liệu do … đóng góp” khi bài được đăng
+          </label>
+          <label class="flex items-start gap-2 text-xs text-ink/70">
+            <input id="cConsent" type="checkbox" class="mt-0.5" /> Tôi là chủ của hình ảnh này (hoặc được phép chia sẻ) và đồng ý để dự án đăng tải sau khi duyệt. *
+          </label>
+
+          <p id="contributeError" class="hidden text-xs text-terracotta-dark bg-terracotta/10 border border-terracotta/25 rounded-lg px-3 py-2" role="alert"></p>
+
+          <div class="flex gap-3 pt-1">
+            <button type="submit" id="contributeSubmitBtn" class="flex-1 py-3 rounded-xl bg-terracotta text-white text-sm font-semibold hover:bg-terracotta-dark transition-colors">Gửi để duyệt</button>
+            <button type="button" id="contributeCancelBtn" class="px-6 py-3 rounded-xl border border-ink/15 text-sm hover:bg-ink/5 transition-colors">Huỷ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <!-- ============ MODAL CHI TIẾT ============ -->
   <div id="motifModal" class="modal-overlay" aria-hidden="true">
@@ -289,7 +438,7 @@
       <div class="p-7 sm:p-8">
         <span id="modalCategory" class="motif-card__tag mb-3 inline-block"></span>
         <h3 id="modalTitle" class="font-serif text-2xl sm:text-3xl text-ink mb-3"></h3>
-        <p id="modalDescription" class="text-ink/75 leading-relaxed mb-5"></p>
+        <div id="modalSections" class="modal-sections mb-6"></div>
         <div class="grid sm:grid-cols-2 gap-4 text-sm border-t border-gold/20 pt-5">
           <div>
             <p class="text-ink/45 mb-1">Ngôi chùa ghi nhận</p>
@@ -301,6 +450,7 @@
             <p id="modalScans" class="text-ink font-medium"></p>
           </div>
         </div>
+        <p id="modalContributor" class="hidden text-xs text-ink/55 mt-5 pt-4 border-t border-gold/15"></p>
       </div>
     </div>
   </div>
@@ -327,6 +477,8 @@
         <ul class="space-y-2 text-sm text-cream/55">
           <li><a href="#gioi-thieu" class="hover:text-gold transition-colors">Tổng quan</a></li>
           <li><a href="#thu-vien" class="hover:text-gold transition-colors">Thư viện di sản</a></li>
+          <li><a href="#tin-tuc" class="hover:text-gold transition-colors">Tin tức</a></li>
+          <li><a href="#dong-gop" class="hover:text-gold transition-colors">Đóng góp tư liệu</a></li>
           <li><a href="admin.html" class="hover:text-gold transition-colors">Trang quản trị</a></li>
         </ul>
       </div>

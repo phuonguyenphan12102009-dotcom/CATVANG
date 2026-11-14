@@ -114,6 +114,16 @@
         </div>
       </div>
 
+      <!-- Tab điều hướng -->
+      <div class="flex gap-2 mb-6 border-b border-gold/20" role="tablist">
+        <button id="tabMotifs" role="tab" aria-selected="true" class="admin-tab is-active">Chi tiết tạo hình</button>
+        <button id="tabSubmissions" role="tab" aria-selected="false" class="admin-tab">
+          Đóng góp từ cộng đồng
+          <span id="pendingBadge" class="hidden ml-1.5 text-[11px] font-bold px-2 py-0.5 rounded-full bg-terracotta text-white">0</span>
+        </button>
+      </div>
+
+      <div id="panelMotifs">
       <!-- Thanh công cụ -->
       <div class="flex flex-wrap items-center justify-between gap-4 mb-5">
         <h2 class="font-serif text-2xl text-ink">Quản lý chi tiết tạo hình</h2>
@@ -141,6 +151,21 @@
         </table>
         <p id="tableEmptyState" class="hidden text-center text-ink/45 py-10">Chưa có hoa văn nào — hãy thêm mới.</p>
       </div>
+      </div><!-- /panelMotifs -->
+
+      <!-- ===== Đóng góp từ cộng đồng ===== -->
+      <div id="panelSubmissions" class="hidden">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-5">
+          <h2 class="font-serif text-2xl text-ink">Đóng góp từ cộng đồng</h2>
+          <div id="submissionFilters" class="flex gap-2">
+            <button data-status="pending" class="sub-filter is-active">Chờ duyệt</button>
+            <button data-status="approved" class="sub-filter">Đã duyệt</button>
+            <button data-status="rejected" class="sub-filter">Đã từ chối</button>
+          </div>
+        </div>
+        <div id="submissionList" class="grid gap-4"></div>
+        <p id="submissionEmpty" class="hidden text-center text-ink/45 py-12">Không có bài nào ở mục này.</p>
+      </div>
     </main>
   </div>
 
@@ -155,6 +180,8 @@
           </button>
         </div>
 
+        <div id="approveInfo" class="hidden mb-5 rounded-xl bg-beige/70 border border-gold/25 px-4 py-3 text-xs text-ink/70 leading-relaxed"></div>
+
         <form id="motifForm" class="space-y-4">
           <input type="hidden" id="motifId" />
 
@@ -164,8 +191,25 @@
           </div>
 
           <div>
-            <label class="block text-xs font-medium text-ink/70 mb-1.5">Mô tả ý nghĩa văn hóa *</label>
+            <label class="block text-xs font-medium text-ink/70 mb-1.5">Mô tả tóm tắt *</label>
             <textarea id="fDescription" required rows="3" class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50"></textarea>
+            <p class="form-hint mt-1">Hiển thị làm nội dung chính khi bạn không thêm đoạn chi tiết bên dưới (khối chữ dài sẽ tự được tách đoạn).</p>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-xs font-medium text-ink/70">Nội dung chi tiết chia theo đoạn</label>
+              <button type="button" id="addSectionBtn" class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gold/40 bg-white/70 hover:bg-gold/10 transition-colors">+ Thêm đoạn</button>
+            </div>
+            <datalist id="sectionHeadingList">
+              <option value="Giới thiệu"></option>
+              <option value="Nguồn gốc và lịch sử"></option>
+              <option value="Ý nghĩa biểu tượng"></option>
+              <option value="Vị trí và cách nhận biết"></option>
+              <option value="Chất liệu và kỹ thuật"></option>
+            </datalist>
+            <div id="sectionsEditor" class="space-y-3"></div>
+            <p class="form-hint mt-1">Mỗi đoạn có tiêu đề nhỏ và nội dung riêng, hiển thị lần lượt trong cửa sổ chi tiết. Để trống nếu không cần.</p>
           </div>
 
           <div>

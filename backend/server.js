@@ -11,8 +11,12 @@ const path = require("path");
 const motifRoutes = require("./routes/motifRoutes");
 const authRoutes = require("./routes/authRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
+const submissionRoutes = require("./routes/submissionRoutes");
+const newsRoutes = require("./routes/newsRoutes");
+const rateLimit = require("./middleware/rateLimit");
 
 const app = express();
+app.set("trust proxy", 1); // chạy sau proxy của Render -> req.ip là IP thật của khách (cần cho giới hạn tốc độ)
 const PORT = process.env.PORT || 5002;
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/khmer_museum";
 
@@ -51,9 +55,13 @@ mongoose
   });
 
 // ---------- Routes API ----------
+// Chống dò mật khẩu: tối đa 10 lần đăng nhập / 15 phút / IP
+app.use("/api/login", rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: "Đăng nhập sai quá nhiều lần, vui lòng thử lại sau 15 phút." }));
 app.use("/api", authRoutes); // POST /api/login, GET /api/me
 app.use("/api", motifRoutes); // GET/POST/PUT/DELETE /api/motifs, GET /api/scan/:id, GET /api/stats
 app.use("/api", uploadRoutes); // POST /api/upload — Admin tải ảnh từ máy tính lên server
+app.use("/api", submissionRoutes); // Đóng góp từ cộng đồng + duyệt bài
+app.use("/api", newsRoutes); // GET /api/news — tìm bài báo liên quan
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "Server đang chạy bình thường" });

@@ -1,0 +1,7 @@
+# Không đưa lên GitHub
+node_modules/
+.env
+backend/.env
+backend/uploads/*
+!backend/uploads/.gitkeep
+.DS_Store

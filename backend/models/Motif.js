@@ -21,10 +21,21 @@ const motifSchema = new mongoose.Schema(
       enum: ["Tượng", "Phù điêu", "Hoa văn", "Hội họa", "Chùa"],
       default: "Hoa văn",
     },
+    // Nội dung chi tiết chia thành nhiều đoạn (mỗi đoạn có tiêu đề nhỏ + nội dung).
+    // Không bắt buộc: bản ghi cũ chỉ có `description` vẫn hiển thị bình thường.
+    sections: [
+      {
+        _id: false,
+        heading: { type: String, trim: true, maxlength: 120, default: "" },
+        body: { type: String, trim: true, maxlength: 4000, default: "" },
+      },
+    ],
     imageUrl: {
       type: String,
       required: [true, "Cần có ảnh chi tiết tạo hình"],
     },
+    // Người đóng góp (chỉ có khi bài đến từ cộng đồng và người gửi đồng ý ghi tên)
+    contributor: { type: String, trim: true, maxlength: 100, default: "" },
     // Toạ độ điểm chạm (hotspot) trên ảnh tổng quan kiến trúc,
     // tính theo phần trăm (%) chiều rộng/chiều cao để responsive mọi màn hình.
     hotspotCoordinates: {
