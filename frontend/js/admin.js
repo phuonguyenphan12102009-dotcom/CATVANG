@@ -1,10 +1,4 @@
-// admin.js
-// Logic phía Client cho admin.html: đăng nhập JWT, lưu token, gọi API bảo vệ
-// để Thêm / Sửa / Xoá hoa văn, và hiển thị thống kê nhanh cho Dashboard.
 
-// Tự nhận diện môi trường: chạy local thì gọi localhost, deploy thật thì gọi backend Render.
-// Sau khi deploy backend lên Render, thay PRODUCTION_API_URL bằng địa chỉ Render thật của bạn
-// (phải TRÙNG với giá trị trong frontend/js/main.js).
 const PRODUCTION_API_URL = "https://catvang.onrender.com/api";
 const API_BASE_URL =
   ["localhost", "127.0.0.1"].includes(window.location.hostname)
@@ -15,7 +9,7 @@ const ADMIN_KEY = "khmer_museum_admin_info";
 
 let currentMotifs = [];
 let editingMotifId = null;
-let approvingSubmission = null; // có giá trị khi form đang ở chế độ "Duyệt đóng góp"
+let approvingSubmission = null; 
 let currentSubmissions = [];
 let submissionStatus = "pending";
 
@@ -34,9 +28,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// ============================================================
-// XÁC THỰC / PHIÊN ĐĂNG NHẬP
-// ============================================================
 function getToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
@@ -64,7 +55,6 @@ function initLoginForm() {
 
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value;
-    // Máy chủ Render gói miễn phí có thể đang ngủ: sau 4 giây vẫn chưa xong thì báo khách đợi
     const wakeTimer = setTimeout(() => {
       submitBtn.textContent = "Máy chủ đang khởi động, vui lòng đợi...";
     }, 4000);
@@ -129,9 +119,6 @@ function showDashboard(admin) {
   loadSubmissionBadge();
 }
 
-// ============================================================
-// GỌI API CÓ XÁC THỰC (helper)
-// ============================================================
 async function authFetch(path, options = {}) {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
@@ -151,9 +138,6 @@ async function authFetch(path, options = {}) {
   return res;
 }
 
-// ============================================================
-// THỐNG KÊ DASHBOARD
-// ============================================================
 async function loadStats() {
   try {
     const res = await authFetch("/stats");
@@ -174,15 +158,12 @@ async function loadStats() {
   }
 }
 
-// ============================================================
-// BẢNG DANH SÁCH HOA VĂN
-// ============================================================
 async function loadMotifTable() {
   const errorEl = document.getElementById("adminError");
   errorEl.classList.add("hidden");
 
   try {
-    const res = await fetch(`${API_BASE_URL}/motifs`); // GET công khai, không cần token
+    const res = await fetch(`${API_BASE_URL}/motifs`); 
     currentMotifs = await res.json();
     renderMotifTable();
   } catch (err) {
@@ -231,9 +212,7 @@ function renderMotifTable() {
   );
 }
 
-// ============================================================
-// MODAL FORM THÊM / SỬA
-// ============================================================
+
 function initMotifFormModal() {
   const overlay = document.getElementById("motifFormModal");
   const openBtn = document.getElementById("openCreateBtn");
@@ -253,9 +232,6 @@ function initMotifFormModal() {
   initSectionsEditor();
 }
 
-// ============================================================
-// TẢI ẢNH TỪ MÁY TÍNH (input file -> preview -> upload lên server)
-// ============================================================
 function initImageUploadField() {
   const fileInput = document.getElementById("fImageFile");
   const fileNameEl = document.getElementById("fImageFileName");
@@ -269,7 +245,6 @@ function initImageUploadField() {
 
     fileNameEl.textContent = file.name;
 
-    // Xem trước ảnh ngay lập tức (chưa cần chờ upload xong)
     const reader = new FileReader();
     reader.onload = (e) => {
       preview.src = e.target.result;
@@ -280,7 +255,6 @@ function initImageUploadField() {
     await uploadImageFile(file);
   });
 
-  // Nếu admin tự dán/sửa URL ảnh bằng tay, cập nhật preview tương ứng
   urlInput.addEventListener("change", () => {
     if (urlInput.value.trim()) {
       preview.src = urlInput.value.trim();
@@ -306,7 +280,7 @@ function initImageUploadField() {
     try {
       const res = await fetch(`${API_BASE_URL}/upload`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${getToken()}` }, // KHÔNG set Content-Type — browser tự thêm boundary
+        headers: { Authorization: `Bearer ${getToken()}` },
         body: formData,
       });
       const data = await res.json();
@@ -440,7 +414,7 @@ async function handleFormSubmit(e) {
     const res = await authFetch(path, { method, body: JSON.stringify(payload) });
     const data = await res.json();
     if (!res.ok) {
-      if (isApproving && res.status === 409) await loadSubmissions(); // bài đã được xử lý -> làm mới danh sách
+      if (isApproving && res.status === 409) await loadSubmissions();  
       throw new Error(data.message || "Không thể lưu hoa văn");
     }
 
@@ -477,10 +451,6 @@ async function handleDelete(id) {
   }
 }
 
-
-// ============================================================
-// TRÌNH SOẠN NỘI DUNG CHIA ĐOẠN (tiêu đề nhỏ + nội dung)
-// ============================================================
 function initSectionsEditor() {
   const editor = document.getElementById("sectionsEditor");
   document.getElementById("addSectionBtn").addEventListener("click", () => {
@@ -488,7 +458,6 @@ function initSectionsEditor() {
     row.querySelector(".sec-heading").focus();
   });
 
-  // Nút ↑ ↓ ✕ trên từng đoạn (event delegation)
   editor.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-sec-action]");
     if (!btn) return;
@@ -532,12 +501,10 @@ function collectSections() {
       heading: row.querySelector(".sec-heading").value.trim(),
       body: row.querySelector(".sec-body").value.trim(),
     }))
-    .filter((sec) => sec.body); // bỏ đoạn trống
+    .filter((sec) => sec.body); 
 }
 
-// ============================================================
-// TAB: CHI TIẾT TẠO HÌNH  |  ĐÓNG GÓP TỪ CỘNG ĐỒNG
-// ============================================================
+
 function initTabs() {
   document.getElementById("tabMotifs").addEventListener("click", () => switchTab("motifs"));
   document.getElementById("tabSubmissions").addEventListener("click", () => switchTab("submissions"));
@@ -556,9 +523,6 @@ function switchTab(name) {
   if (!isMotifs) loadSubmissions();
 }
 
-// ============================================================
-// DUYỆT ĐÓNG GÓP TỪ CỘNG ĐỒNG
-// ============================================================
 function initSubmissionPanel() {
   document.querySelectorAll("#submissionFilters .sub-filter").forEach((btn) =>
     btn.addEventListener("click", () => {
@@ -661,12 +625,12 @@ function renderSubmissions() {
   });
 }
 
-// Mở form Thêm/Sửa ở chế độ "Duyệt": điền sẵn từ bài đóng góp, admin chỉnh + bổ sung GPS rồi đăng
+
 function openApproveForm(id) {
   const sub = currentSubmissions.find((x) => x._id === id);
   if (!sub) return;
 
-  openCreateForm(); // reset form về trạng thái sạch
+  openCreateForm(); 
   approvingSubmission = sub;
   setApproveMode(true);
 
@@ -686,7 +650,6 @@ function openApproveForm(id) {
     `Kiểm tra và chỉnh nội dung, tách đoạn nếu cần, bổ sung toạ độ GPS rồi bấm “Duyệt &amp; đăng”.`;
 }
 
-// Bật/tắt giao diện chế độ duyệt (khoá ô ảnh vì ảnh đã được người gửi tải lên)
 function setApproveMode(on) {
   document.getElementById("approveInfo").classList.toggle("hidden", !on);
   document.getElementById("formSubmitBtn").textContent = on ? "Duyệt & đăng" : "Lưu hoa văn";
@@ -700,7 +663,7 @@ async function handleReject(id) {
   const reason = prompt(
     `Từ chối "${sub?.title || "bài này"}"?\nẢnh sẽ bị xoá khỏi kho lưu trữ.\n\nLý do (không bắt buộc, chỉ lưu nội bộ):`
   );
-  if (reason === null) return; // bấm Huỷ
+  if (reason === null) return; 
 
   try {
     const res = await authFetch(`/submissions/${id}/reject`, { method: "POST", body: JSON.stringify({ reason }) });
@@ -726,9 +689,6 @@ async function handleSubmissionDelete(id) {
   await Promise.all([loadSubmissions(), loadSubmissionBadge()]);
 }
 
-// ============================================================
-// TOAST THÔNG BÁO
-// ============================================================
 let toastTimer = null;
 function showToast(message, type = "success") {
   const toast = document.getElementById("toast");
@@ -741,9 +701,6 @@ function showToast(message, type = "success") {
   toastTimer = setTimeout(() => toast.classList.remove("is-visible"), 3200);
 }
 
-// ============================================================
-// TIỆN ÍCH
-// ============================================================
 function escapeHTML(str) {
   if (!str) return "";
   return String(str)

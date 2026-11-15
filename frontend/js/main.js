@@ -1,10 +1,3 @@
-// main.js
-// Logic phía Client (index.html): gọi API lấy dữ liệu Motif,
-// dựng bản đồ địa lý thật (Leaflet), thư viện di sản dạng thẻ glassmorphism, modal chi tiết,
-// và khởi tạo các hiệu ứng cuộn (AOS + parallax).
-
-// Tự nhận diện môi trường: chạy local thì gọi localhost, deploy thật thì gọi backend Render.
-// Sau khi deploy backend lên Render, thay PRODUCTION_API_URL bằng địa chỉ Render thật của bạn.
 const PRODUCTION_API_URL = "https://catvang.onrender.com/api";
 const API_BASE_URL =
   ["localhost", "127.0.0.1"].includes(window.location.hostname)
@@ -17,7 +10,7 @@ let searchQuery = "";
 let leafletMap = null;
 let markerLayer = null;
 
-// ---------- Khởi tạo khi trang đã tải ----------
+
 document.addEventListener("DOMContentLoaded", () => {
   initMobileMenu();
   initAOS();
@@ -32,7 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchMotifs();
 });
 
-// ---------- Menu mobile ----------
 function initMobileMenu() {
   const btn = document.getElementById("mobileMenuBtn");
   const menu = document.getElementById("mobileMenu");
@@ -40,7 +32,6 @@ function initMobileMenu() {
   btn.addEventListener("click", () => menu.classList.toggle("hidden"));
 }
 
-// ---------- AOS (Animate On Scroll) ----------
 function initAOS() {
   if (typeof AOS === "undefined") return;
   AOS.init({
@@ -51,12 +42,6 @@ function initAOS() {
   });
 }
 
-// ---------- Gọi API lấy danh sách hoa văn ----------
-// Backend chạy trên Render gói miễn phí nên sẽ "ngủ" sau ~15 phút không có người vào,
-// lần gọi đầu có thể mất 30-60 giây. Vì vậy:
-//  1) Có dữ liệu đã lưu từ lần trước thì hiện ngay, không bắt khách chờ.
-//  2) Gọi API tự thử lại nhiều lần (mỗi lần tối đa 20 giây) thay vì bỏ cuộc sau lần đầu.
-//  3) Hiện dòng thông báo để khách biết máy chủ đang khởi động.
 const CACHE_KEY = "khmer_museum_motifs_v1";
 const IS_LOCAL = ["localhost", "127.0.0.1"].includes(window.location.hostname);
 
@@ -65,7 +50,7 @@ function readCache() {
     const data = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
     return Array.isArray(data?.motifs) && data.motifs.length ? data.motifs : null;
   } catch {
-    return null; // localStorage bị chặn hoặc dữ liệu hỏng -> coi như chưa có cache
+    return null; 
   }
 }
 
@@ -73,7 +58,6 @@ function writeCache(motifs) {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: Date.now(), motifs }));
   } catch {
-    /* hết dung lượng hoặc bị chặn: bỏ qua, không ảnh hưởng chức năng */
   }
 }
 
@@ -89,8 +73,6 @@ function setServerStatus(message, { showRetry = false } = {}) {
   box.classList.remove("hidden");
 }
 
-// Gọi fetch có giới hạn thời gian cho mỗi lần; thất bại thì chờ rồi thử lại.
-// Chỉ trả về khi server báo OK. Lỗi phía người dùng (4xx, trừ 408/429) thì dừng ngay, thử lại cũng vô ích.
 async function fetchWithRetry(url, { attempts = 5, timeoutMs = 20000, delayMs = 2500, onRetry } = {}) {
   let lastErr;
   for (let i = 1; i <= attempts; i++) {
@@ -129,10 +111,9 @@ async function fetchMotifs() {
   const cached = readCache();
   if (cached) {
     allMotifs = cached;
-    renderAll(); // hiện ngay dữ liệu lần trước trong khi chờ bản mới
+    renderAll();
   }
 
-  // Sau 2,5 giây vẫn chưa có kết quả thì báo khách biết (khách có dữ liệu cache thì báo nhẹ hơn)
   const slowTimer = setTimeout(() => {
     setServerStatus(
       cached
@@ -155,7 +136,7 @@ async function fetchMotifs() {
     if (cached) {
       setServerStatus("Chưa kết nối được máy chủ, đang hiển thị dữ liệu đã lưu từ lần trước.", { showRetry: true });
     } else if (IS_LOCAL) {
-      allMotifs = getFallbackMotifs(); // dữ liệu mẫu CHỈ dùng khi chạy ở máy local
+      allMotifs = getFallbackMotifs(); 
       setServerStatus("");
     } else {
       allMotifs = [];
@@ -168,9 +149,6 @@ async function fetchMotifs() {
   renderAll();
 }
 
-// ============================================================
-// DẢI SỐ LIỆU SỐ HÓA (thay cho đồng hồ đếm ngược trong hero)
-// ============================================================
 function renderStatBar() {
   const templeCount = new Set(allMotifs.map((m) => m.templeName).filter(Boolean)).size;
   const categoryCount = new Set(allMotifs.map((m) => m.category).filter(Boolean)).size;
@@ -198,9 +176,7 @@ function animateCount(elementId, target) {
   requestAnimationFrame(tick);
 }
 
-// ============================================================
-// BỘ LỌC DANH MỤC + THƯ VIỆN DI SẢN
-// ============================================================
+
 function renderCategoryFilters() {
   const container = document.getElementById("categoryFilters");
   if (!container) return;
@@ -285,12 +261,6 @@ function renderGallery() {
   if (typeof AOS !== "undefined") AOS.refreshHard();
 }
 
-
-// ============================================================
-// Ô TÌM KIẾM TRONG THƯ VIỆN DI SẢN
-// ============================================================
-// Tìm không phân biệt hoa/thường và KHÔNG cần gõ dấu: "chan" tìm ra "CHẦN", "tuong" ra "Tượng".
-// Nhiều từ khoá thì bài phải chứa tất cả các từ (VD: "krud sức mạnh").
 function normalizeText(str) {
   return String(str || "")
     .normalize("NFD")
@@ -300,7 +270,7 @@ function normalizeText(str) {
     .toLowerCase();
 }
 
-const searchTextCache = new WeakMap(); // mỗi hoa văn chỉ chuẩn hóa chữ một lần
+const searchTextCache = new WeakMap(); 
 
 function getSearchText(motif) {
   let text = searchTextCache.get(motif);
@@ -345,7 +315,7 @@ function initMotifSearch() {
   input.addEventListener("input", () => {
     clearBtn.classList.toggle("hidden", input.value === "");
     clearTimeout(timer);
-    timer = setTimeout(apply, 150); // chờ người dùng ngừng gõ một chút rồi mới lọc
+    timer = setTimeout(apply, 150);
   });
   input.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
@@ -360,9 +330,6 @@ function initMotifSearch() {
   });
 }
 
-// ============================================================
-// MODAL CHI TIẾT
-// ============================================================
 function initModal() {
   const overlay = document.getElementById("motifModal");
   const closeBtn = document.getElementById("modalCloseBtn");
@@ -409,9 +376,6 @@ function closeMotifModal() {
   document.body.style.overflow = "";
 }
 
-// ============================================================
-// BẢN ĐỒ ĐỊA LÝ THẬT (Leaflet + OpenStreetMap)
-// ============================================================
 function renderRealMap() {
   const mapEl = document.getElementById("realMap");
   if (!mapEl || typeof L === "undefined") return;
@@ -427,10 +391,9 @@ function renderRealMap() {
   }).addTo(leafletMap);
   }
 
-  if (markerLayer) markerLayer.clearLayers(); // vẽ lại (VD: sau khi có dữ liệu mới) mà không bị trùng điểm
+  if (markerLayer) markerLayer.clearLayers(); 
   else markerLayer = L.layerGroup().addTo(leafletMap);
 
-  // Gom nhóm hoa văn theo từng ngôi chùa (cùng toạ độ geoLocation) để mỗi chùa 1 marker
   const templeGroups = {};
   allMotifs.forEach((motif) => {
     const lat = motif.geoLocation?.lat;
@@ -475,13 +438,6 @@ function renderRealMap() {
   }
 }
 
-
-// ============================================================
-// NỘI DUNG CHIA ĐOẠN
-// ============================================================
-// Ưu tiên `motif.sections` (mỗi mục có tiêu đề + nội dung do admin soạn).
-// Bản ghi cũ chỉ có `description` thì tự tách đoạn: theo dòng trống / xuống dòng,
-// hoặc nếu chỉ là một khối chữ dài thì gom khoảng 2-3 câu thành một đoạn.
 function splitIntoParagraphs(text) {
   const blocks = String(text || "")
     .split(/\n+/)
@@ -525,7 +481,7 @@ function renderModalSections(motif) {
     body.className = "modal-section__body";
     splitIntoParagraphs(sec.body).forEach((text) => {
       const p = document.createElement("p");
-      p.textContent = text; // textContent: tự động an toàn trước HTML chèn vào
+      p.textContent = text; 
       body.appendChild(p);
     });
     wrap.appendChild(body);
@@ -533,9 +489,6 @@ function renderModalSections(motif) {
   });
 }
 
-// ============================================================
-// TÌM BÀI BÁO LIÊN QUAN (gọi GET /api/news)
-// ============================================================
 const NEWS_SUGGESTIONS = [
   "chùa Khmer Vĩnh Long",
   "lễ hội Ok Om Bok",
@@ -569,7 +522,6 @@ function initNewsSearch() {
     searchNews();
   });
 
-  // Chỉ gọi API lần đầu khi khách cuộn tới mục này (đỡ tốn lượt gọi cho người không xem)
   if ("IntersectionObserver" in window) {
     const io = new IntersectionObserver(
       (entries) => {
@@ -599,7 +551,7 @@ async function searchNews() {
     return;
   }
 
-  const myId = ++newsRequestId; // tránh kết quả cũ ghi đè kết quả mới khi bấm liên tiếp
+  const myId = ++newsRequestId; 
   btn.disabled = true;
   status.textContent = `Đang tìm bài báo về “${q}”...`;
   grid.innerHTML = Array.from({ length: 6 }, () => '<div class="news-skeleton"></div>').join("");
@@ -656,9 +608,6 @@ function renderNews(items, q) {
   });
 }
 
-// ============================================================
-// GỬI ĐÓNG GÓP TỪ KHÁCH (POST /api/submissions)
-// ============================================================
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
 function initContributeForm() {
@@ -786,9 +735,6 @@ function showContributeError(msg) {
   el.classList.remove("hidden");
 }
 
-// ============================================================
-// TIỆN ÍCH
-// ============================================================
 function escapeHTML(str) {
   if (!str) return "";
   return String(str)
@@ -798,7 +744,6 @@ function escapeHTML(str) {
     .replaceAll('"', "&quot;");
 }
 
-// Dữ liệu dự phòng để xem trước giao diện khi chưa bật backend/MongoDB
 function getFallbackMotifs() {
   return [
     {
