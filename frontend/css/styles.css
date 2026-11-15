@@ -680,3 +680,7 @@ header nav a {
   line-height: 1.5 !important;
   color: rgba(74, 36, 22, 0.55);
 }
+
+/* Ô tìm kiếm thư viện: dùng nút xóa riêng nên ẩn nút xóa mặc định của trình duyệt */
+#motifSearch::-webkit-search-cancel-button,
+#motifSearch::-webkit-search-decoration { -webkit-appearance: none; appearance: none; display: none; }

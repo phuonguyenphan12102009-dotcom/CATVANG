@@ -13,6 +13,7 @@ const API_BASE_URL =
 
 let allMotifs = [];
 let activeCategory = "Tất cả";
+let searchQuery = "";
 let leafletMap = null;
 let markerLayer = null;
 
@@ -22,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initAOS();
   initModal();
   initNewsSearch();
+  initMotifSearch();
   initContributeForm();
   document.querySelector("[data-status-retry]")?.addEventListener("click", () => {
     setServerStatus("Đang kết nối lại...");
@@ -233,13 +235,20 @@ function renderGallery() {
   const emptyState = document.getElementById("motifEmptyState");
   if (!grid) return;
 
-  const filtered =
+  const byCategory =
     activeCategory === "Tất cả" ? allMotifs : allMotifs.filter((m) => m.category === activeCategory);
+  const filtered = searchQuery ? byCategory.filter(matchesSearch) : byCategory;
 
   grid.innerHTML = "";
+  updateSearchCount(filtered.length);
 
   if (filtered.length === 0) {
-    emptyState?.classList.remove("hidden");
+    if (emptyState) {
+      emptyState.textContent = searchQuery
+        ? `Không tìm thấy kết quả nào cho “${searchQuery}”. Thử từ khoá ngắn hơn hoặc chọn “Tất cả”.`
+        : "Chưa có dữ liệu nào phù hợp bộ lọc.";
+      emptyState.classList.remove("hidden");
+    }
     return;
   }
   emptyState?.classList.add("hidden");
@@ -274,6 +283,81 @@ function renderGallery() {
 
   // Cho AOS quét lại các phần tử vừa được thêm động vào DOM
   if (typeof AOS !== "undefined") AOS.refreshHard();
+}
+
+
+// ============================================================
+// Ô TÌM KIẾM TRONG THƯ VIỆN DI SẢN
+// ============================================================
+// Tìm không phân biệt hoa/thường và KHÔNG cần gõ dấu: "chan" tìm ra "CHẦN", "tuong" ra "Tượng".
+// Nhiều từ khoá thì bài phải chứa tất cả các từ (VD: "krud sức mạnh").
+function normalizeText(str) {
+  return String(str || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .toLowerCase();
+}
+
+const searchTextCache = new WeakMap(); // mỗi hoa văn chỉ chuẩn hóa chữ một lần
+
+function getSearchText(motif) {
+  let text = searchTextCache.get(motif);
+  if (text === undefined) {
+    const sectionText = (Array.isArray(motif.sections) ? motif.sections : [])
+      .map((sec) => `${sec.heading || ""} ${sec.body || ""}`)
+      .join(" ");
+    text = normalizeText(
+      [motif.title, motif.category, motif.description, motif.templeName, motif.templeAddress, motif.contributor, sectionText].join(" ")
+    );
+    searchTextCache.set(motif, text);
+  }
+  return text;
+}
+
+function matchesSearch(motif) {
+  const text = getSearchText(motif);
+  return normalizeText(searchQuery)
+    .split(/\s+/)
+    .filter(Boolean)
+    .every((word) => text.includes(word));
+}
+
+function updateSearchCount(count) {
+  const el = document.getElementById("motifSearchCount");
+  if (!el) return;
+  el.textContent = searchQuery ? `${count} kết quả cho “${searchQuery}”` : "";
+}
+
+function initMotifSearch() {
+  const input = document.getElementById("motifSearch");
+  const clearBtn = document.getElementById("motifSearchClear");
+  if (!input || !clearBtn) return;
+
+  let timer = null;
+  const apply = () => {
+    searchQuery = input.value.trim().replace(/\s+/g, " ");
+    clearBtn.classList.toggle("hidden", input.value === "");
+    renderGallery();
+  };
+
+  input.addEventListener("input", () => {
+    clearBtn.classList.toggle("hidden", input.value === "");
+    clearTimeout(timer);
+    timer = setTimeout(apply, 150); // chờ người dùng ngừng gõ một chút rồi mới lọc
+  });
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      input.value = "";
+      apply();
+    }
+  });
+  clearBtn.addEventListener("click", () => {
+    input.value = "";
+    apply();
+    input.focus();
+  });
 }
 
 // ============================================================
