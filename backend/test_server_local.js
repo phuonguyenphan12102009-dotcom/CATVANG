@@ -8,7 +8,6 @@ app.use(express.json({ limit: "2mb" }));
 const motifRoutes = require("./routes/motifRoutes");
 const authRoutes = require("./routes/authRoutes");
 
-// stub mongoose/model calls so we don't need a real DB - just testing ROUTE MATCHING
 app.use("/api", authRoutes);
 app.use("/api", motifRoutes);
 

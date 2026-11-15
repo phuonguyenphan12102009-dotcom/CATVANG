@@ -559,9 +559,7 @@ header nav a {
 .font-heading {
   font-family: "Playfair Display", serif !important;
 }
-/* ============================================================
-   NỘI DUNG CHIA ĐOẠN TRONG MODAL CHI TIẾT
-   ============================================================ */
+
 .modal-sections > * + * { margin-top: 1.25rem; }
 
 .modal-section__heading {
@@ -582,9 +580,6 @@ header nav a {
 }
 .modal-section__body p + p { margin-top: 0.75rem; }
 
-/* ============================================================
-   TIN TỨC & BÀI BÁO
-   ============================================================ */
 .news-chip {
   font-size: 1rem;
   font-weight: 600;
@@ -645,9 +640,6 @@ header nav a {
   .news-card:hover { transform: none; }
 }
 
-/* ============================================================
-   TRANG QUẢN TRỊ: TAB, BỘ LỌC ĐÓNG GÓP, TRÌNH SOẠN ĐOẠN
-   ============================================================ */
 .admin-tab {
   padding: 0.65rem 1.1rem;
   font-size: 1.1rem;
@@ -674,13 +666,11 @@ header nav a {
 .admin-tab:focus-visible,
 .sub-filter:focus-visible { outline: 2px solid #E2532D; outline-offset: 2px; }
 
-/* Chú thích nhỏ dưới ô nhập. Cần !important vì quy tắc gốc `p { font-size: 1.25rem !important }` ở trên */
 .form-hint {
   font-size: 0.9rem !important;
   line-height: 1.5 !important;
   color: rgba(74, 36, 22, 0.55);
 }
 
-/* Ô tìm kiếm thư viện: dùng nút xóa riêng nên ẩn nút xóa mặc định của trình duyệt */
 #motifSearch::-webkit-search-cancel-button,
 #motifSearch::-webkit-search-decoration { -webkit-appearance: none; appearance: none; display: none; }

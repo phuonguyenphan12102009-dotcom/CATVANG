@@ -1,7 +1,3 @@
-// server.js
-// Khởi tạo Express server, kết nối MongoDB (Mongoose), gắn các Routes API
-// cho dự án "Bảo tàng số kiến trúc chùa Khmer" (Vĩnh Long)
-
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
@@ -16,13 +12,10 @@ const newsRoutes = require("./routes/newsRoutes");
 const rateLimit = require("./middleware/rateLimit");
 
 const app = express();
-app.set("trust proxy", 1); // chạy sau proxy của Render -> req.ip là IP thật của khách (cần cho giới hạn tốc độ)
+app.set("trust proxy", 1); 
 const PORT = process.env.PORT || 5002;
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/khmer_museum";
 
-// ---------- Middleware ----------
-// CORS: chỉ cho phép các domain frontend liệt kê trong FRONTEND_URL (phân tách bằng dấu phẩy).
-// Nếu chưa đặt biến này (VD lúc chạy local), cho phép tất cả để dễ phát triển.
 const allowedOrigins = (process.env.FRONTEND_URL || "")
   .split(",")
   .map((s) => s.trim())
@@ -31,7 +24,6 @@ const allowedOrigins = (process.env.FRONTEND_URL || "")
 app.use(
   cors({
     origin(origin, callback) {
-      // origin rỗng = request không qua trình duyệt (Postman, curl...) -> luôn cho phép
       if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
@@ -39,13 +31,9 @@ app.use(
     },
   })
 );
-app.use(express.json({ limit: "2mb" })); // parse JSON body cho POST/PUT
-
-// ---------- Phục vụ tĩnh ảnh admin đã upload từ máy tính ----------
-// Ảnh lưu tại backend/uploads/, truy cập qua http://<host>/uploads/<tên file>
+app.use(express.json({ limit: "2mb" })); 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ---------- Kết nối MongoDB ----------
 mongoose
   .connect(MONGO_URI)
   .then(() => console.log("✅ Đã kết nối MongoDB thành công"))
@@ -54,36 +42,26 @@ mongoose
     process.exit(1);
   });
 
-// ---------- Routes API ----------
-// Chống dò mật khẩu: tối đa 10 lần đăng nhập / 15 phút / IP
 app.use("/api/login", rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: "Đăng nhập sai quá nhiều lần, vui lòng thử lại sau 15 phút." }));
-app.use("/api", authRoutes); // POST /api/login, GET /api/me
-app.use("/api", motifRoutes); // GET/POST/PUT/DELETE /api/motifs, GET /api/scan/:id, GET /api/stats
-app.use("/api", uploadRoutes); // POST /api/upload — Admin tải ảnh từ máy tính lên server
-app.use("/api", submissionRoutes); // Đóng góp từ cộng đồng + duyệt bài
-app.use("/api", newsRoutes); // GET /api/news — tìm bài báo liên quan
+app.use("/api", authRoutes); 
+app.use("/api", motifRoutes); 
+app.use("/api", uploadRoutes); 
+app.use("/api", submissionRoutes); 
+app.use("/api", newsRoutes); 
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "Server đang chạy bình thường" });
 });
 
-// ---------- (Tuỳ chọn) Phục vụ luôn frontend tĩnh từ cùng server ----------
-// Bỏ comment 2 dòng dưới nếu muốn chạy chung 1 cổng thay vì mở index.html riêng bằng Live Server.
-// app.use(express.static(path.join(__dirname, "..", "frontend")));
-// app.get(/^(?!\/api).*/, (req, res) => res.sendFile(path.join(__dirname, "..", "frontend", "index.html")));
-
-// ---------- Xử lý lỗi 404 cho các route API không tồn tại ----------
 app.use("/api", (req, res) => {
   res.status(404).json({ message: "Không tìm thấy endpoint API này" });
 });
 
-// ---------- Middleware xử lý lỗi tập trung ----------
 app.use((err, req, res, next) => {
   console.error("🔥 Lỗi không mong muốn:", err);
   res.status(500).json({ message: "Đã xảy ra lỗi máy chủ", error: err.message });
 });
 
-// ---------- Khởi động server ----------
 app.listen(PORT, () => {
   console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
 });
