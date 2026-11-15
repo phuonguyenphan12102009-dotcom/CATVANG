@@ -14,6 +14,7 @@ const API_BASE_URL =
 let allMotifs = [];
 let activeCategory = "Tất cả";
 let leafletMap = null;
+let markerLayer = null;
 
 // ---------- Khởi tạo khi trang đã tải ----------
 document.addEventListener("DOMContentLoaded", () => {
@@ -22,6 +23,10 @@ document.addEventListener("DOMContentLoaded", () => {
   initModal();
   initNewsSearch();
   initContributeForm();
+  document.querySelector("[data-status-retry]")?.addEventListener("click", () => {
+    setServerStatus("Đang kết nối lại...");
+    fetchMotifs();
+  });
   fetchMotifs();
 });
 
@@ -45,20 +50,120 @@ function initAOS() {
 }
 
 // ---------- Gọi API lấy danh sách hoa văn ----------
-async function fetchMotifs() {
-  try {
-    const res = await fetch(`${API_BASE_URL}/motifs`);
-    if (!res.ok) throw new Error("Không thể tải dữ liệu hoa văn");
-    allMotifs = await res.json();
-  } catch (err) {
-    console.warn("⚠️ Không kết nối được API, dùng dữ liệu mẫu tạm thời để xem trước giao diện:", err.message);
-    allMotifs = getFallbackMotifs();
-  }
+// Backend chạy trên Render gói miễn phí nên sẽ "ngủ" sau ~15 phút không có người vào,
+// lần gọi đầu có thể mất 30-60 giây. Vì vậy:
+//  1) Có dữ liệu đã lưu từ lần trước thì hiện ngay, không bắt khách chờ.
+//  2) Gọi API tự thử lại nhiều lần (mỗi lần tối đa 20 giây) thay vì bỏ cuộc sau lần đầu.
+//  3) Hiện dòng thông báo để khách biết máy chủ đang khởi động.
+const CACHE_KEY = "khmer_museum_motifs_v1";
+const IS_LOCAL = ["localhost", "127.0.0.1"].includes(window.location.hostname);
 
+function readCache() {
+  try {
+    const data = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+    return Array.isArray(data?.motifs) && data.motifs.length ? data.motifs : null;
+  } catch {
+    return null; // localStorage bị chặn hoặc dữ liệu hỏng -> coi như chưa có cache
+  }
+}
+
+function writeCache(motifs) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: Date.now(), motifs }));
+  } catch {
+    /* hết dung lượng hoặc bị chặn: bỏ qua, không ảnh hưởng chức năng */
+  }
+}
+
+function setServerStatus(message, { showRetry = false } = {}) {
+  const box = document.getElementById("serverStatus");
+  if (!box) return;
+  if (!message) {
+    box.classList.add("hidden");
+    return;
+  }
+  box.querySelector("[data-status-text]").textContent = message;
+  box.querySelector("[data-status-retry]").classList.toggle("hidden", !showRetry);
+  box.classList.remove("hidden");
+}
+
+// Gọi fetch có giới hạn thời gian cho mỗi lần; thất bại thì chờ rồi thử lại.
+// Chỉ trả về khi server báo OK. Lỗi phía người dùng (4xx, trừ 408/429) thì dừng ngay, thử lại cũng vô ích.
+async function fetchWithRetry(url, { attempts = 5, timeoutMs = 20000, delayMs = 2500, onRetry } = {}) {
+  let lastErr;
+  for (let i = 1; i <= attempts; i++) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { signal: ctrl.signal });
+      if (res.ok) return res;
+      lastErr = new Error(`Máy chủ trả về mã ${res.status}`);
+      if (res.status < 500 && res.status !== 408 && res.status !== 429) {
+        lastErr.fatal = true;
+        throw lastErr;
+      }
+    } catch (err) {
+      lastErr = err;
+      if (err.fatal) throw err;
+    } finally {
+      clearTimeout(timer);
+    }
+    if (i < attempts) {
+      onRetry?.(i);
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
+  }
+  throw lastErr || new Error("Không kết nối được máy chủ");
+}
+
+function renderAll() {
   renderCategoryFilters();
   renderGallery();
   renderRealMap();
   renderStatBar();
+}
+
+async function fetchMotifs() {
+  const cached = readCache();
+  if (cached) {
+    allMotifs = cached;
+    renderAll(); // hiện ngay dữ liệu lần trước trong khi chờ bản mới
+  }
+
+  // Sau 2,5 giây vẫn chưa có kết quả thì báo khách biết (khách có dữ liệu cache thì báo nhẹ hơn)
+  const slowTimer = setTimeout(() => {
+    setServerStatus(
+      cached
+        ? "Đang cập nhật dữ liệu mới nhất từ máy chủ..."
+        : "Máy chủ đang khởi động sau thời gian nghỉ, bạn vui lòng đợi khoảng 30–60 giây. Trang sẽ tự hiện nội dung, không cần tải lại."
+    );
+  }, 2500);
+
+  try {
+    const res = await fetchWithRetry(`${API_BASE_URL}/motifs`, {
+      onRetry: (n) => {
+        if (!cached) setServerStatus(`Máy chủ đang khởi động... (thử lại lần ${n + 1})`);
+      },
+    });
+    allMotifs = await res.json();
+    writeCache(allMotifs);
+    setServerStatus("");
+  } catch (err) {
+    console.warn("⚠️ Không tải được dữ liệu:", err.message);
+    if (cached) {
+      setServerStatus("Chưa kết nối được máy chủ, đang hiển thị dữ liệu đã lưu từ lần trước.", { showRetry: true });
+    } else if (IS_LOCAL) {
+      allMotifs = getFallbackMotifs(); // dữ liệu mẫu CHỈ dùng khi chạy ở máy local
+      setServerStatus("");
+    } else {
+      allMotifs = [];
+      setServerStatus("Không kết nối được máy chủ. Bạn kiểm tra mạng rồi bấm “Thử lại” nhé.", { showRetry: true });
+    }
+  } finally {
+    clearTimeout(slowTimer);
+  }
+
+  renderAll();
 }
 
 // ============================================================
@@ -238,6 +343,9 @@ function renderRealMap() {
   }).addTo(leafletMap);
   }
 
+  if (markerLayer) markerLayer.clearLayers(); // vẽ lại (VD: sau khi có dữ liệu mới) mà không bị trùng điểm
+  else markerLayer = L.layerGroup().addTo(leafletMap);
+
   // Gom nhóm hoa văn theo từng ngôi chùa (cùng toạ độ geoLocation) để mỗi chùa 1 marker
   const templeGroups = {};
   allMotifs.forEach((motif) => {
@@ -267,7 +375,7 @@ function renderRealMap() {
 
   const bounds = [];
   Object.values(templeGroups).forEach((group) => {
-    const marker = L.marker([group.lat, group.lng], { icon: goldIcon }).addTo(leafletMap);
+    const marker = L.marker([group.lat, group.lng], { icon: goldIcon }).addTo(markerLayer);
     marker.bindPopup(`
       <div style="font-family: 'Be Vietnam Pro', sans-serif; min-width:180px">
         <strong style="font-family:'Playfair Display', serif; font-size:15px; color:#3A2C1D">${escapeHTML(group.templeName)}</strong>
@@ -413,16 +521,20 @@ async function searchNews() {
   grid.innerHTML = Array.from({ length: 6 }, () => '<div class="news-skeleton"></div>').join("");
 
   try {
-    const res = await fetch(`${API_BASE_URL}/news?q=${encodeURIComponent(q)}&period=${encodeURIComponent(period)}`);
+    const res = await fetchWithRetry(`${API_BASE_URL}/news?q=${encodeURIComponent(q)}&period=${encodeURIComponent(period)}`, {
+      attempts: 4,
+      onRetry: () => {
+        if (myId === newsRequestId) status.textContent = "Máy chủ đang khởi động, vui lòng đợi một chút...";
+      },
+    });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.message || "Không lấy được tin tức lúc này.");
     if (myId !== newsRequestId) return;
 
     renderNews(data.items || [], q);
   } catch (err) {
     if (myId !== newsRequestId) return;
     grid.innerHTML = "";
-    status.textContent = `${err.message} Bạn thử lại sau ít phút nhé.`;
+    status.textContent = "Chưa lấy được tin tức lúc này. Bạn thử lại sau ít phút nhé.";
   } finally {
     if (myId === newsRequestId) btn.disabled = false;
   }

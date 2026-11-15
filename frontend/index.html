@@ -279,6 +279,11 @@
       <div id="categoryFilters" class="flex flex-wrap gap-2" data-aos="fade-left"></div>
     </div>
 
+    <div id="serverStatus" class="hidden mb-6 rounded-lg border border-gold/40 bg-gold/10 px-5 py-4 flex flex-wrap items-center gap-3" role="status" aria-live="polite">
+      <span data-status-text class="text-sm text-ink flex-1 min-w-[220px]"></span>
+      <button type="button" data-status-retry class="hidden px-4 py-2 rounded-full bg-terracotta text-white text-sm font-semibold hover:bg-terracotta-dark transition-colors">Thử lại</button>
+    </div>
+
     <div id="motifGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-grid"></div> 
     <p id="motifEmptyState" class="hidden text-center text-ink/50 py-16">Chưa có dữ liệu nào phù hợp bộ lọc.</p>
   </section>

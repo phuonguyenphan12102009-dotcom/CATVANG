@@ -64,6 +64,10 @@ function initLoginForm() {
 
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value;
+    // Máy chủ Render gói miễn phí có thể đang ngủ: sau 4 giây vẫn chưa xong thì báo khách đợi
+    const wakeTimer = setTimeout(() => {
+      submitBtn.textContent = "Máy chủ đang khởi động, vui lòng đợi...";
+    }, 4000);
 
     try {
       const res = await fetch(`${API_BASE_URL}/login`, {
@@ -81,6 +85,7 @@ function initLoginForm() {
       errorEl.textContent = err.message;
       errorEl.classList.remove("hidden");
     } finally {
+      clearTimeout(wakeTimer);
       submitBtn.disabled = false;
       submitBtn.textContent = "Đăng nhập";
     }
