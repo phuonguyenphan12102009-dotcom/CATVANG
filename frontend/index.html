@@ -279,6 +279,7 @@
       <div id="categoryFilters" class="flex flex-wrap gap-2" data-aos="fade-left"></div>
     </div>
 
+    <!-- Ô tìm kiếm trong thư viện -->
     <div class="relative mb-3">
       <label class="sr-only" for="motifSearch">Tìm trong thư viện di sản</label>
       <svg class="absolute left-5 top-1/2 -translate-y-1/2 text-ink/45 pointer-events-none" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5" stroke-linecap="round"/></svg>
@@ -298,6 +299,11 @@
 
     <div id="motifGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-grid"></div> 
     <p id="motifEmptyState" class="hidden text-center text-ink/50 py-16">Chưa có dữ liệu nào phù hợp bộ lọc.</p>
+
+    <div id="loadMoreWrap" class="hidden text-center mt-12">
+      <p id="motifShownCount" class="form-hint mb-4" aria-live="polite"></p>
+      <button id="loadMoreBtn" type="button" class="px-9 py-3 rounded-full border-2 border-terracotta text-terracotta font-semibold hover:bg-terracotta hover:text-white transition-colors">Xem thêm</button>
+    </div>
   </section>
 
   <div class="vine-divider"></div>
@@ -349,6 +355,14 @@
     </div>
   </section>
 
+  <!-- ============ XEM ẢNH PHÓNG TO ============ -->
+  <div id="imageLightbox" class="lightbox" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Ảnh phóng to">
+    <button id="lightboxCloseBtn" type="button" class="lightbox__close" aria-label="Đóng ảnh">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l10 10M14 4L4 14" /></svg>
+    </button>
+    <img id="lightboxImage" src="" alt="" />
+  </div>
+
   <!-- ============ MODAL GỬI ĐÓNG GÓP ============ -->
   <div id="contributeModal" class="modal-overlay" aria-hidden="true">
     <div class="modal-panel bg-cream rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="contributeTitle">
@@ -367,6 +381,7 @@
         </div>
 
         <form id="contributeForm" class="space-y-4" novalidate>
+          <!-- Ô bẫy bot: người thật không nhìn thấy và không điền -->
           <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden" aria-hidden="true">
             <label>Website <input type="text" name="website" id="cWebsite" tabindex="-1" autocomplete="off" /></label>
           </div>
@@ -450,21 +465,22 @@
       <button id="modalCloseBtn" class="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-ink/70 text-white flex items-center justify-center hover:bg-ink transition-colors" aria-label="Đóng">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l10 10M14 4L4 14" /></svg>
       </button>
-      <img id="modalImage" src="" alt="" class="w-full h-64 sm:h-80 object-cover" />
+      <button type="button" id="modalImageBtn" class="modal-image" aria-label="Phóng to ảnh">
+        <span id="modalImageBlur" class="modal-image__blur" aria-hidden="true"></span>
+        <img id="modalImage" src="" alt="" class="modal-image__img" />
+        <span class="modal-image__hint" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5M8.5 6v5M6 8.5h5" stroke-linecap="round"/></svg>
+          Bấm để phóng to
+        </span>
+      </button>
       <div class="p-7 sm:p-8">
         <span id="modalCategory" class="motif-card__tag mb-3 inline-block"></span>
         <h3 id="modalTitle" class="font-serif text-2xl sm:text-3xl text-ink mb-3"></h3>
         <div id="modalSections" class="modal-sections mb-6"></div>
-        <div class="grid sm:grid-cols-2 gap-4 text-sm border-t border-gold/20 pt-5">
-          <div>
-            <p class="text-ink/45 mb-1">Ngôi chùa ghi nhận</p>
-            <p id="modalTemple" class="text-ink font-medium"></p>
-            <p id="modalAddress" class="text-ink/60 text-xs mt-0.5"></p>
-          </div>
-          <div>
-            <p class="text-ink/45 mb-1">Lượt quét mã QR tại thực địa</p>
-            <p id="modalScans" class="text-ink font-medium"></p>
-          </div>
+        <div class="text-sm border-t border-gold/20 pt-5">
+          <p class="text-ink/45 mb-1">Ngôi chùa ghi nhận</p>
+          <p id="modalTemple" class="text-ink font-medium"></p>
+          <p id="modalAddress" class="text-ink/60 text-xs mt-0.5"></p>
         </div>
         <p id="modalContributor" class="hidden text-xs text-ink/55 mt-5 pt-4 border-t border-gold/15"></p>
       </div>

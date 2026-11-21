@@ -59,12 +59,6 @@ const motifSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
-    // Đếm số lượt quét mã QR tại thực địa — phục vụ số liệu truyền thông
-    qrScans: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
   },
   {
     timestamps: true, // tự động thêm createdAt, updatedAt

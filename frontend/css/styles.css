@@ -1,14 +1,14 @@
 :root {
   --paper: #FDF1DC;
-  --paper-light: #FFF7EA;
+  --paper-light: #FFF8EC;
   --paper-dark: #FBE4BF;
-  --ink: #43291F;
+  --ink: #4A2416;
   --ink-soft: #8A4B32;
-  --gold: #E9AE3D;
+  --gold: #E8A93B;
   --gold-dark: #C9862A;
   --terracotta: #E2532D;
   --terracotta-dark: #B93D1E;
-  --leaf: #263F78;
+  --leaf: #E67A8A;
 }
 
 html {
@@ -38,7 +38,7 @@ body.bg-cream {
   background-image:
     radial-gradient(circle at 18% 12%, rgba(255,255,255,0.35), transparent 45%),
     radial-gradient(circle at 82% 78%, rgba(226,83,45,0.06), transparent 55%),
-    repeating-radial-gradient(circle at 0 0, rgba(67,41,31,0.028) 0, rgba(67,41,31,0.028) 1px, transparent 1px, transparent 3px);
+    repeating-radial-gradient(circle at 0 0, rgba(74,36,22,0.028) 0, rgba(74,36,22,0.028) 1px, transparent 1px, transparent 3px);
   background-attachment: fixed;
 }
 
@@ -180,7 +180,7 @@ body.bg-cream {
   background-position: center;
   background-size: 150px 34px;
   opacity: 0.85;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='34' viewBox='0 0 150 34'><path d='M0 17 Q18 4 37 17 T75 17 T113 17 T150 17' stroke='%23E9AE3D' stroke-width='1.6' fill='none'/><ellipse cx='18' cy='9' rx='9' ry='4.5' fill='%23263F78' transform='rotate(-28 18 9)'/><ellipse cx='56' cy='25' rx='9' ry='4.5' fill='%23263F78' transform='rotate(28 56 25)'/><ellipse cx='94' cy='9' rx='9' ry='4.5' fill='%23263F78' transform='rotate(-28 94 9)'/><ellipse cx='132' cy='25' rx='9' ry='4.5' fill='%23263F78' transform='rotate(28 132 25)'/><circle cx='37' cy='17' r='2.6' fill='%23E2532D'/><circle cx='113' cy='17' r='2.6' fill='%23E2532D'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='34' viewBox='0 0 150 34'><path d='M0 17 Q18 4 37 17 T75 17 T113 17 T150 17' stroke='%23E8A93B' stroke-width='1.6' fill='none'/><ellipse cx='18' cy='9' rx='9' ry='4.5' fill='%23E67A8A' transform='rotate(-28 18 9)'/><ellipse cx='56' cy='25' rx='9' ry='4.5' fill='%23E67A8A' transform='rotate(28 56 25)'/><ellipse cx='94' cy='9' rx='9' ry='4.5' fill='%23E67A8A' transform='rotate(-28 94 9)'/><ellipse cx='132' cy='25' rx='9' ry='4.5' fill='%23E67A8A' transform='rotate(28 132 25)'/><circle cx='37' cy='17' r='2.6' fill='%23E2532D'/><circle cx='113' cy='17' r='2.6' fill='%23E2532D'/></svg>");
 }
 
 .motif-card {
@@ -251,8 +251,8 @@ body.bg-cream {
   text-transform: uppercase;
   padding: 0.2rem 0.65rem;
   border-radius: 999px;
-  background: #263F78;
-  color: #FFF7EA;
+  background: var(--gold);
+  color: #2a1f13;
   font-weight: 700;
 }
 
@@ -281,7 +281,7 @@ body.bg-cream {
 ::-webkit-scrollbar { width: 10px; }
 ::-webkit-scrollbar-track { background: var(--paper); }
 ::-webkit-scrollbar-thumb { background: var(--paper-dark); border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: #263F78; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
 
 .modal-overlay {
   position: fixed;
@@ -471,8 +471,8 @@ body.bg-cream {
 }
 
 .quicknav-card__arrow--dark {
-  background: rgba(38, 63, 120, 0.12);
-  color: #263F78;
+  background: rgba(162, 62, 42, 0.12);
+  color: var(--terracotta-dark);
 }
 
 .quicknav-card:hover .quicknav-card__arrow {
@@ -482,7 +482,7 @@ body.bg-cream {
 }
 
 .quicknav-card:hover .quicknav-card__arrow--dark {
-  background: #263F78;
+  background: var(--terracotta);
   color: #FBF6EA;
 }
 
@@ -503,7 +503,7 @@ body.bg-cream {
   height: 50px;
   min-width: 50px;
   border-radius: 50%;
-  background-color: #E9AE3D;
+  background-color: #f7a838;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -559,27 +559,32 @@ header nav a {
 .font-heading {
   font-family: "Playfair Display", serif !important;
 }
-
+/* ============================================================
+   NỘI DUNG CHIA ĐOẠN TRONG MODAL CHI TIẾT
+   ============================================================ */
 .modal-sections > * + * { margin-top: 1.25rem; }
 
 .modal-section__heading {
   font-family: "Playfair Display", serif;
   font-size: 1.2rem;
   font-weight: 600;
-  color: var(--ink, #43291F);
+  color: var(--ink, #4A2416);
   padding-left: 0.75rem;
-  border-left: 3px solid #263F78;
+  border-left: 3px solid #E8A93B;
   margin-bottom: 0.5rem;
   line-height: 1.3;
 }
 
 .modal-section__body p {
-  color: rgba(67, 41, 31, 0.8);
+  color: rgba(74, 36, 22, 0.8);
   line-height: 1.8;
   max-width: 62ch;
 }
 .modal-section__body p + p { margin-top: 0.75rem; }
 
+/* ============================================================
+   TIN TỨC & BÀI BÁO
+   ============================================================ */
 .news-chip {
   font-size: 1rem;
   font-weight: 600;
@@ -587,12 +592,12 @@ header nav a {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.6);
   border: 1px solid rgba(232, 169, 59, 0.3);
-  color: rgba(67, 41, 31, 0.75);
+  color: rgba(74, 36, 22, 0.75);
   transition: background-color 0.2s, color 0.2s;
 }
 .news-chip:hover { background: #fff; }
 .news-chip:focus-visible,
-.news-card:focus-visible { outline: 2px solid #263F78; outline-offset: 2px; }
+.news-card:focus-visible { outline: 2px solid #E2532D; outline-offset: 2px; }
 
 .news-card {
   display: flex;
@@ -602,33 +607,33 @@ header nav a {
   border-radius: 0.6rem;
   background: rgba(255, 251, 235, 0.75);
   border: 1px solid rgba(176, 138, 62, 0.3);
-  border-left: 4px solid #E9AE3D;
+  border-left: 4px solid #E8A93B;
   text-decoration: none;
   color: inherit;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.news-card:hover { transform: translateY(-2px); box-shadow: 0 10px 22px -14px rgba(67, 41, 31, 0.55); }
+.news-card:hover { transform: translateY(-2px); box-shadow: 0 10px 22px -14px rgba(74, 36, 22, 0.55); }
 
 .news-card__meta {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem 0.75rem;
   font-size: 0.95rem;
-  color: rgba(67, 41, 31, 0.55);
+  color: rgba(74, 36, 22, 0.55);
 }
 .news-card__source { font-weight: 700; color: #B93D1E; }
 .news-card__title {
   font-family: "Playfair Display", serif;
   font-size: 1.2rem;
   line-height: 1.4;
-  color: #43291F;
+  color: #4A2416;
 }
-.news-card__go { margin-top: auto; font-size: 1rem; font-weight: 600; color: #263F78; }
+.news-card__go { margin-top: auto; font-size: 1rem; font-weight: 600; color: #C9862A; }
 
 .news-skeleton {
   height: 8.5rem;
   border-radius: 0.6rem;
-  background: linear-gradient(90deg, rgba(233,174,61,0.12), rgba(233,174,61,0.25), rgba(233,174,61,0.12));
+  background: linear-gradient(90deg, rgba(232,169,59,0.12), rgba(232,169,59,0.25), rgba(232,169,59,0.12));
   background-size: 200% 100%;
   animation: newsShimmer 1.3s linear infinite;
 }
@@ -640,17 +645,20 @@ header nav a {
   .news-card:hover { transform: none; }
 }
 
+/* ============================================================
+   TRANG QUẢN TRỊ: TAB, BỘ LỌC ĐÓNG GÓP, TRÌNH SOẠN ĐOẠN
+   ============================================================ */
 .admin-tab {
   padding: 0.65rem 1.1rem;
   font-size: 1.1rem;
   font-weight: 600;
-  color: rgba(67, 41, 31, 0.55);
+  color: rgba(74, 36, 22, 0.55);
   border-bottom: 3px solid transparent;
   margin-bottom: -1px;
   transition: color 0.2s, border-color 0.2s;
 }
-.admin-tab:hover { color: #43291F; }
-.admin-tab.is-active { color: #263F78; border-bottom-color: #263F78; }
+.admin-tab:hover { color: #4A2416; }
+.admin-tab.is-active { color: #B93D1E; border-bottom-color: #E2532D; }
 
 .sub-filter {
   font-size: 1rem;
@@ -659,18 +667,126 @@ header nav a {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.6);
   border: 1px solid rgba(232, 169, 59, 0.3);
-  color: rgba(67, 41, 31, 0.7);
+  color: rgba(74, 36, 22, 0.7);
 }
-.sub-filter.is-active { background: #263F78; border-color: #263F78; color: #fff; }
+.sub-filter.is-active { background: #E2532D; border-color: #E2532D; color: #fff; }
 
 .admin-tab:focus-visible,
-.sub-filter:focus-visible { outline: 2px solid #263F78; outline-offset: 2px; }
+.sub-filter:focus-visible { outline: 2px solid #E2532D; outline-offset: 2px; }
 
+/* Chú thích nhỏ dưới ô nhập. Cần !important vì quy tắc gốc `p { font-size: 1.25rem !important }` ở trên */
 .form-hint {
   font-size: 0.9rem !important;
   line-height: 1.5 !important;
-  color: rgba(67, 41, 31, 0.55);
+  color: rgba(74, 36, 22, 0.55);
 }
 
+/* Ô tìm kiếm thư viện: dùng nút xóa riêng nên ẩn nút xóa mặc định của trình duyệt */
 #motifSearch::-webkit-search-cancel-button,
 #motifSearch::-webkit-search-decoration { -webkit-appearance: none; appearance: none; display: none; }
+
+/* ============================================================
+   ẢNH TRONG MODAL CHI TIẾT: hiện trọn ảnh + bấm để phóng to
+   ============================================================ */
+.modal-image {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 16rem;
+  overflow: hidden;
+  background: rgba(74, 36, 22, 0.12);
+  cursor: zoom-in;
+}
+@media (min-width: 640px) { .modal-image { height: 22rem; } }
+
+/* Nền mờ cùng màu ảnh để lấp phần thừa hai bên khi ảnh không vừa khung */
+.modal-image__blur {
+  position: absolute;
+  inset: -24px;
+  background-size: cover;
+  background-position: center;
+  filter: blur(26px) saturate(1.15);
+  opacity: 0.6;
+}
+.modal-image__img {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* hiện TRỌN ảnh, không cắt */
+  display: block;
+}
+.modal-image__hint {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(74, 36, 22, 0.72);
+  color: #fff;
+  pointer-events: none;
+}
+.modal-image:focus-visible { outline: 3px solid #E2532D; outline-offset: -3px; }
+
+/* ===== Lightbox xem ảnh lớn ===== */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200; /* cao hơn .modal-overlay (100) */
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(24, 12, 7, 0.93);
+  cursor: zoom-out;
+}
+.lightbox.is-open { display: flex; }
+.lightbox img {
+  max-width: 96vw;
+  max-height: 92vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 0.5rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  cursor: default;
+}
+.lightbox__close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+.lightbox__close:hover { background: rgba(255, 255, 255, 0.3); }
+
+/* ============================================================
+   POPUP BẢN ĐỒ: thông tin chùa
+   Dùng <div>/<span> + class riêng, vì quy tắc gốc `p { font-size: 1.25rem !important }`
+   sẽ làm phình mọi thẻ <p> trong popup.
+   ============================================================ */
+.map-popup { min-width: 230px; max-width: 290px; }
+.map-popup__name {
+  font-family: "Playfair Display", serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #4A2416;
+}
+.map-popup__address { margin-top: 0.2rem; font-size: 0.95rem; line-height: 1.4; color: rgba(74, 36, 22, 0.65); }
+.map-popup__rows { margin-top: 0.7rem; padding-top: 0.6rem; border-top: 1px solid rgba(201, 134, 42, 0.3); display: grid; gap: 0.45rem; }
+.map-popup__label { display: block; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(74, 36, 22, 0.5); }
+.map-popup__value { display: block; font-size: 1.02rem; line-height: 1.35; color: #4A2416; font-weight: 600; }
+.map-popup__value.is-empty { font-weight: 400; font-style: italic; color: rgba(74, 36, 22, 0.4); }
+.map-popup__count { margin-top: 0.7rem; font-size: 0.95rem; font-weight: 600; color: #B93D1E; }

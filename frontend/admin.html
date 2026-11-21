@@ -37,6 +37,7 @@
 
 <body class="bg-cream text-ink font-body antialiased min-h-screen">
 
+  <!-- ============ MÀN HÌNH ĐĂNG NHẬP ============ -->
   <section id="loginScreen" class="min-h-screen flex items-center justify-center px-6">
     <div class="glass-panel rounded-2xl w-full max-w-md p-8 sm:p-10">
       <div class="flex items-center gap-3 mb-8 justify-center">
@@ -73,8 +74,10 @@
     </div>
   </section>
 
+  <!-- ============ DASHBOARD QUẢN TRỊ (ẩn cho đến khi đăng nhập) ============ -->
   <div id="dashboardScreen" class="hidden">
 
+    <!-- Header -->
     <header class="sticky top-0 z-30 bg-cream/90 backdrop-blur-md border-b border-gold/20">
       <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
@@ -95,14 +98,15 @@
 
     <main class="max-w-6xl mx-auto px-6 py-10">
 
+      <!-- Thống kê nhanh -->
       <div class="grid sm:grid-cols-4 gap-4 mb-10">
         <div class="rounded-2xl bg-beige/50 border border-gold/20 p-5">
           <p class="text-xs text-ink/50 mb-1">Tổng số hoa văn</p>
           <p id="statTotalMotifs" class="font-serif text-3xl text-ink">—</p>
         </div>
         <div class="rounded-2xl bg-beige/50 border border-gold/20 p-5">
-          <p class="text-xs text-ink/50 mb-1">Tổng lượt quét QR</p>
-          <p id="statTotalScans" class="font-serif text-3xl text-terracotta">—</p>
+          <p class="text-xs text-ink/50 mb-1">Số ngôi chùa</p>
+          <p id="statTotalTemples" class="font-serif text-3xl text-terracotta">—</p>
         </div>
         <div class="rounded-2xl bg-beige/50 border border-gold/20 p-5 sm:col-span-2">
           <p class="text-xs text-ink/50 mb-2">Theo danh mục</p>
@@ -110,8 +114,10 @@
         </div>
       </div>
 
+      <!-- Tab điều hướng -->
       <div class="flex gap-2 mb-6 border-b border-gold/20" role="tablist">
         <button id="tabMotifs" role="tab" aria-selected="true" class="admin-tab is-active">Chi tiết tạo hình</button>
+        <button id="tabTemples" role="tab" aria-selected="false" class="admin-tab">Thông tin chùa</button>
         <button id="tabSubmissions" role="tab" aria-selected="false" class="admin-tab">
           Đóng góp từ cộng đồng
           <span id="pendingBadge" class="hidden ml-1.5 text-[11px] font-bold px-2 py-0.5 rounded-full bg-terracotta text-white">0</span>
@@ -119,6 +125,7 @@
       </div>
 
       <div id="panelMotifs">
+      <!-- Thanh công cụ -->
       <div class="flex flex-wrap items-center justify-between gap-4 mb-5">
         <h2 class="font-serif text-2xl text-ink">Quản lý chi tiết tạo hình</h2>
         <button id="openCreateBtn" class="px-5 py-2.5 rounded-full bg-terracotta text-white text-sm font-semibold hover:bg-terracotta-dark transition-colors">
@@ -128,6 +135,7 @@
 
       <p id="adminError" class="hidden text-sm text-terracotta-dark bg-terracotta/10 border border-terracotta/25 rounded-lg px-4 py-2.5 mb-4"></p>
 
+      <!-- Bảng danh sách -->
       <div class="rounded-2xl border border-gold/20 overflow-hidden bg-white/60">
         <table class="w-full text-sm">
           <thead class="bg-beige/70 text-ink/60 text-xs uppercase tracking-wide">
@@ -136,7 +144,6 @@
               <th class="text-left px-4 py-3">Tiêu đề</th>
               <th class="text-left px-4 py-3">Danh mục</th>
               <th class="text-left px-4 py-3">Chùa</th>
-              <th class="text-left px-4 py-3">Lượt quét</th>
               <th class="text-right px-4 py-3">Thao tác</th>
             </tr>
           </thead>
@@ -144,8 +151,32 @@
         </table>
         <p id="tableEmptyState" class="hidden text-center text-ink/45 py-10">Chưa có hoa văn nào — hãy thêm mới.</p>
       </div>
+      </div><!-- /panelMotifs -->
+
+      <!-- ===== Thông tin chùa (hiện trong popup bản đồ) ===== -->
+      <div id="panelTemples" class="hidden">
+        <div class="mb-5">
+          <h2 class="font-serif text-2xl text-ink">Thông tin các ngôi chùa</h2>
+          <p class="form-hint mt-1">Nhập năm xây dựng, sư trụ trì và giờ mở cửa. Thông tin này hiện khi khách bấm vào điểm của chùa trên bản đồ. Danh sách lấy từ tên chùa đã nhập ở các hoa văn.</p>
+        </div>
+        <div class="rounded-2xl border border-gold/20 overflow-x-auto bg-white/60">
+          <table class="w-full text-sm min-w-[720px]">
+            <thead class="bg-beige/70 text-ink/60 text-xs uppercase tracking-wide">
+              <tr>
+                <th class="text-left px-4 py-3">Tên chùa</th>
+                <th class="text-left px-4 py-3">Năm xây dựng</th>
+                <th class="text-left px-4 py-3">Sư trụ trì</th>
+                <th class="text-left px-4 py-3">Giờ mở cửa</th>
+                <th class="text-right px-4 py-3">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="templeTableBody" class="divide-y divide-gold/10"></tbody>
+          </table>
+          <p id="templeEmptyState" class="hidden text-center text-ink/45 py-10">Chưa có chùa nào. Hãy thêm hoa văn có ghi tên chùa trước.</p>
+        </div>
       </div>
 
+      <!-- ===== Đóng góp từ cộng đồng ===== -->
       <div id="panelSubmissions" class="hidden">
         <div class="flex flex-wrap items-center justify-between gap-4 mb-5">
           <h2 class="font-serif text-2xl text-ink">Đóng góp từ cộng đồng</h2>
@@ -159,6 +190,45 @@
         <p id="submissionEmpty" class="hidden text-center text-ink/45 py-12">Không có bài nào ở mục này.</p>
       </div>
     </main>
+  </div>
+
+  <!-- ============ MODAL THÊM / SỬA HOA VĂN ============ -->
+  <!-- ===== Modal sửa thông tin chùa ===== -->
+  <div id="templeFormModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-panel bg-cream rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="templeFormTitle">
+      <div class="p-7 sm:p-8">
+        <div class="flex items-center justify-between mb-5">
+          <h3 id="templeFormTitle" class="font-serif text-2xl text-ink">Thông tin chùa</h3>
+          <button id="templeFormCloseBtn" type="button" class="w-9 h-9 rounded-full bg-ink/5 hover:bg-ink/10 flex items-center justify-center transition-colors" aria-label="Đóng">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l10 10M13 3L3 13" /></svg>
+          </button>
+        </div>
+        <form id="templeForm" class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-ink/70 mb-1.5" for="tName">Tên chùa</label>
+            <input id="tName" readonly class="w-full rounded-xl border border-gold/20 bg-beige/50 px-4 py-2.5 text-sm text-ink/70" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-ink/70 mb-1.5" for="tFounded">Năm xây dựng</label>
+            <input id="tFounded" maxlength="60" placeholder="VD: 1800 hoặc Thế kỷ 19" class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-ink/70 mb-1.5" for="tAbbot">Sư trụ trì</label>
+            <input id="tAbbot" maxlength="100" placeholder="VD: Đại đức Thạch Văn A" class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-ink/70 mb-1.5" for="tHours">Giờ mở cửa</label>
+            <input id="tHours" maxlength="150" placeholder="VD: 5:00 – 20:00 hằng ngày" class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50" />
+          </div>
+          <p class="form-hint">Ô nào chưa biết thì để trống, popup sẽ ghi "Đang cập nhật". Để trống cả ba ô sẽ xoá thông tin của chùa này.</p>
+          <p id="templeFormError" class="hidden text-xs text-terracotta-dark bg-terracotta/10 border border-terracotta/25 rounded-lg px-3 py-2" role="alert"></p>
+          <div class="flex gap-3 pt-1">
+            <button type="submit" id="templeSubmitBtn" class="flex-1 py-3 rounded-xl bg-terracotta text-white text-sm font-semibold hover:bg-terracotta-dark transition-colors">Lưu thông tin</button>
+            <button type="button" id="templeCancelBtn" class="px-6 py-3 rounded-xl border border-ink/15 text-sm hover:bg-ink/5 transition-colors">Huỷ</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 
   <div id="motifFormModal" class="modal-overlay" aria-hidden="true">
@@ -217,17 +287,20 @@
           <div>
             <label class="block text-xs font-medium text-ink/70 mb-1.5">Hình ảnh *</label>
 
+            <!-- Tải ảnh từ máy tính -->
             <div class="flex items-center gap-3 mb-2">
               <label for="fImageFile" class="cursor-pointer text-xs font-semibold px-3 py-2 rounded-lg border border-gold/40 bg-white/70 hover:bg-gold/10 transition-colors whitespace-nowrap">
-                Chọn ảnh từ máy
+                📁 Chọn ảnh từ máy
               </label>
               <input id="fImageFile" type="file" accept="image/png, image/jpeg, image/webp, image/gif" class="hidden" />
               <span id="fImageFileName" class="text-xs text-ink/50 truncate">Chưa chọn file nào</span>
             </div>
 
+            <!-- Xem trước ảnh -->
             <img id="fImagePreview" src="" alt="" class="hidden w-full h-32 object-cover rounded-lg border border-gold/20 mb-2" />
             <p id="fImageUploadStatus" class="hidden text-xs px-2 py-1 rounded mb-2"></p>
 
+            <!-- URL ảnh: tự điền sau khi tải lên, hoặc dán link có sẵn -->
             <input id="fImageUrl" required type="text" placeholder="Hoặc dán URL ảnh có sẵn (https://...)" class="w-full rounded-xl border border-gold/30 bg-white/70 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50" />
             <p class="text-[11px] text-ink/40 mt-1">Chọn ảnh từ máy để tự động tải lên, hoặc dán URL ảnh đã có sẵn trên mạng.</p>
           </div>
@@ -282,6 +355,7 @@
     </div>
   </div>
 
+  <!-- ============ TOAST THÔNG BÁO ============ -->
   <div id="toast" class="toast fixed top-5 right-5 z-[200] max-w-xs rounded-xl px-4 py-3 text-sm font-medium shadow-lg"></div>
 
   <script src="js/admin.js"></script>

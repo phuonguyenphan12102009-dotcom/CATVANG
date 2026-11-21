@@ -7,6 +7,7 @@ const express = require("express");
 const router = express.Router();
 const Motif = require("../models/Motif");
 const { protect } = require("../middleware/auth");
+const { templeKey } = require("../utils/text");
 
 /**
  * GET /api/motifs
@@ -108,45 +109,19 @@ router.delete("/motifs/:id", protect, async (req, res) => {
 });
 
 /**
- * GET /api/scan/:id
- * API công khai được gọi khi khách quét mã QR gắn tại chùa.
- * Tự động cộng thêm 1 vào qrScans (dùng $inc để tránh race condition khi nhiều
- * người quét cùng lúc) và trả về dữ liệu chi tiết hoa văn để hiển thị trang kết quả.
- */
-router.get("/scan/:id", async (req, res) => {
-  try {
-    const motif = await Motif.findByIdAndUpdate(
-      req.params.id,
-      { $inc: { qrScans: 1 } },
-      { new: true }
-    );
-
-    if (!motif) return res.status(404).json({ message: "Mã QR không hợp lệ hoặc hoa văn đã bị xoá" });
-
-    res.status(200).json(motif);
-  } catch (err) {
-    res.status(400).json({ message: "ID không hợp lệ", error: err.message });
-  }
-});
-
-/**
  * GET /api/stats  🔒 Yêu cầu đăng nhập Admin
- * Thống kê nhanh cho Dashboard admin: tổng số hoa văn, tổng lượt quét QR,
+ * Thống kê nhanh cho Dashboard admin: tổng số hoa văn, số ngôi chùa,
  * số lượng theo từng danh mục.
  */
 router.get("/stats", protect, async (req, res) => {
   try {
     const totalMotifs = await Motif.countDocuments();
-    const scanAgg = await Motif.aggregate([{ $group: { _id: null, totalScans: { $sum: "$qrScans" } } }]);
     const byCategory = await Motif.aggregate([{ $group: { _id: "$category", count: { $sum: 1 } } }]);
-    const topScanned = await Motif.find().sort({ qrScans: -1 }).limit(5).select("title qrScans category");
+    const templeNames = await Motif.distinct("templeName");
+    // Gộp các cách viết khác nhau của cùng một tên chùa (hoa/thường, dấu, khoảng trắng)
+    const totalTemples = new Set(templeNames.map(templeKey).filter(Boolean)).size;
 
-    res.status(200).json({
-      totalMotifs,
-      totalScans: scanAgg[0]?.totalScans || 0,
-      byCategory,
-      topScanned,
-    });
+    res.status(200).json({ totalMotifs, totalTemples, byCategory });
   } catch (err) {
     res.status(500).json({ message: "Lỗi khi lấy thống kê", error: err.message });
   }

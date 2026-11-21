@@ -1,3 +1,10 @@
+// main.js
+// Logic phía Client (index.html): gọi API lấy dữ liệu Motif,
+// dựng bản đồ địa lý thật (Leaflet), thư viện di sản dạng thẻ glassmorphism, modal chi tiết,
+// và khởi tạo các hiệu ứng cuộn (AOS + parallax).
+
+// Tự nhận diện môi trường: chạy local thì gọi localhost, deploy thật thì gọi backend Render.
+// Sau khi deploy backend lên Render, thay PRODUCTION_API_URL bằng địa chỉ Render thật của bạn.
 const PRODUCTION_API_URL = "https://catvang.onrender.com/api";
 const API_BASE_URL =
   ["localhost", "127.0.0.1"].includes(window.location.hostname)
@@ -7,24 +14,36 @@ const API_BASE_URL =
 let allMotifs = [];
 let activeCategory = "Tất cả";
 let searchQuery = "";
+
+// Thư viện: lúc đầu chỉ hiện 3 thẻ, mỗi lần bấm "Xem thêm" hiện thêm 6 thẻ
+const INITIAL_VISIBLE = 3;
+const LOAD_MORE_STEP = 6;
+let visibleCount = INITIAL_VISIBLE;
+
+// Thông tin từng ngôi chùa (năm xây, sư trụ trì, giờ mở cửa) cho popup bản đồ, tra theo templeKey(tên chùa)
+let templesByKey = {};
 let leafletMap = null;
 let markerLayer = null;
 
-
+// ---------- Khởi tạo khi trang đã tải ----------
 document.addEventListener("DOMContentLoaded", () => {
   initMobileMenu();
   initAOS();
   initModal();
   initNewsSearch();
   initMotifSearch();
+  initLoadMore();
+  initLightbox();
+  setTemples(readTempleCache()); // có dữ liệu chùa đã lưu từ lần trước thì dùng ngay cho popup bản đồ
   initContributeForm();
   document.querySelector("[data-status-retry]")?.addEventListener("click", () => {
     setServerStatus("Đang kết nối lại...");
-    fetchMotifs();
+    fetchMotifs().then(fetchTemples);
   });
-  fetchMotifs();
+  fetchMotifs().then(fetchTemples);
 });
 
+// ---------- Menu mobile ----------
 function initMobileMenu() {
   const btn = document.getElementById("mobileMenuBtn");
   const menu = document.getElementById("mobileMenu");
@@ -32,6 +51,7 @@ function initMobileMenu() {
   btn.addEventListener("click", () => menu.classList.toggle("hidden"));
 }
 
+// ---------- AOS (Animate On Scroll) ----------
 function initAOS() {
   if (typeof AOS === "undefined") return;
   AOS.init({
@@ -42,6 +62,12 @@ function initAOS() {
   });
 }
 
+// ---------- Gọi API lấy danh sách hoa văn ----------
+// Backend chạy trên Render gói miễn phí nên sẽ "ngủ" sau ~15 phút không có người vào,
+// lần gọi đầu có thể mất 30-60 giây. Vì vậy:
+//  1) Có dữ liệu đã lưu từ lần trước thì hiện ngay, không bắt khách chờ.
+//  2) Gọi API tự thử lại nhiều lần (mỗi lần tối đa 20 giây) thay vì bỏ cuộc sau lần đầu.
+//  3) Hiện dòng thông báo để khách biết máy chủ đang khởi động.
 const CACHE_KEY = "khmer_museum_motifs_v1";
 const IS_LOCAL = ["localhost", "127.0.0.1"].includes(window.location.hostname);
 
@@ -50,7 +76,7 @@ function readCache() {
     const data = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
     return Array.isArray(data?.motifs) && data.motifs.length ? data.motifs : null;
   } catch {
-    return null; 
+    return null; // localStorage bị chặn hoặc dữ liệu hỏng -> coi như chưa có cache
   }
 }
 
@@ -58,6 +84,7 @@ function writeCache(motifs) {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: Date.now(), motifs }));
   } catch {
+    /* hết dung lượng hoặc bị chặn: bỏ qua, không ảnh hưởng chức năng */
   }
 }
 
@@ -73,6 +100,8 @@ function setServerStatus(message, { showRetry = false } = {}) {
   box.classList.remove("hidden");
 }
 
+// Gọi fetch có giới hạn thời gian cho mỗi lần; thất bại thì chờ rồi thử lại.
+// Chỉ trả về khi server báo OK. Lỗi phía người dùng (4xx, trừ 408/429) thì dừng ngay, thử lại cũng vô ích.
 async function fetchWithRetry(url, { attempts = 5, timeoutMs = 20000, delayMs = 2500, onRetry } = {}) {
   let lastErr;
   for (let i = 1; i <= attempts; i++) {
@@ -111,9 +140,10 @@ async function fetchMotifs() {
   const cached = readCache();
   if (cached) {
     allMotifs = cached;
-    renderAll();
+    renderAll(); // hiện ngay dữ liệu lần trước trong khi chờ bản mới
   }
 
+  // Sau 2,5 giây vẫn chưa có kết quả thì báo khách biết (khách có dữ liệu cache thì báo nhẹ hơn)
   const slowTimer = setTimeout(() => {
     setServerStatus(
       cached
@@ -136,7 +166,7 @@ async function fetchMotifs() {
     if (cached) {
       setServerStatus("Chưa kết nối được máy chủ, đang hiển thị dữ liệu đã lưu từ lần trước.", { showRetry: true });
     } else if (IS_LOCAL) {
-      allMotifs = getFallbackMotifs(); 
+      allMotifs = getFallbackMotifs(); // dữ liệu mẫu CHỈ dùng khi chạy ở máy local
       setServerStatus("");
     } else {
       allMotifs = [];
@@ -149,15 +179,16 @@ async function fetchMotifs() {
   renderAll();
 }
 
+// ============================================================
+// DẢI SỐ LIỆU SỐ HÓA (thay cho đồng hồ đếm ngược trong hero)
+// ============================================================
 function renderStatBar() {
-  const templeCount = new Set(allMotifs.map((m) => m.templeName).filter(Boolean)).size;
+  const templeCount = new Set(allMotifs.map((m) => templeKey(m.templeName)).filter(Boolean)).size;
   const categoryCount = new Set(allMotifs.map((m) => m.category).filter(Boolean)).size;
-  const scanCount = allMotifs.reduce((sum, m) => sum + (m.qrScans || 0), 0);
 
   animateCount("statTemples", templeCount);
   animateCount("statMotifs", allMotifs.length);
   animateCount("statCategories", categoryCount);
-  animateCount("statScans", scanCount);
 }
 
 function animateCount(elementId, target) {
@@ -176,7 +207,9 @@ function animateCount(elementId, target) {
   requestAnimationFrame(tick);
 }
 
-
+// ============================================================
+// BỘ LỌC DANH MỤC + THƯ VIỆN DI SẢN
+// ============================================================
 function renderCategoryFilters() {
   const container = document.getElementById("categoryFilters");
   if (!container) return;
@@ -191,6 +224,7 @@ function renderCategoryFilters() {
     btn.className = buildFilterBtnClass(cat === activeCategory);
     btn.addEventListener("click", () => {
       activeCategory = cat;
+      visibleCount = INITIAL_VISIBLE;
       document.querySelectorAll("#categoryFilters button").forEach((b) => {
         b.className = buildFilterBtnClass(b.dataset.category === activeCategory);
       });
@@ -206,14 +240,46 @@ function buildFilterBtnClass(isActive) {
     : "px-4 py-2 rounded-full text-xs font-semibold bg-white/60 border border-gold/25 text-ink/70 hover:bg-white transition-colors";
 }
 
+function getFilteredMotifs() {
+  const byCategory =
+    activeCategory === "Tất cả" ? allMotifs : allMotifs.filter((m) => m.category === activeCategory);
+  return searchQuery ? byCategory.filter(matchesSearch) : byCategory;
+}
+
+function buildMotifCard(motif, index) {
+  const card = document.createElement("article");
+  card.className = "motif-card";
+  card.style.setProperty("--stagger-index", index % 6);
+  card.setAttribute("data-aos", "fade-up");
+  card.setAttribute("data-aos-delay", String((index % 6) * 90));
+  card.tabIndex = 0;
+  card.setAttribute("role", "button");
+  card.setAttribute("aria-label", `Xem chi tiết: ${motif.title}`);
+
+  card.innerHTML = `
+    <div class="motif-card__bg" style="background-image:url('${motif.imageUrl}')"></div>
+    <div class="motif-card__scrim"></div>
+    <div class="motif-card__body glass-panel-dark">
+      <span class="motif-card__tag">${escapeHTML(motif.category)}</span>
+      <h3 class="font-serif text-white text-lg mt-2 leading-snug">${escapeHTML(motif.title)}</h3>
+      <p class="text-cream/70 text-xs mt-1">${escapeHTML(motif.templeName || "")}</p>
+    </div>
+  `;
+
+  card.addEventListener("click", () => openMotifModal(motif));
+  card.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") openMotifModal(motif);
+  });
+  return card;
+}
+
+// Vẽ lại cả thư viện (đổi danh mục, tìm kiếm, có dữ liệu mới). Chỉ vẽ `visibleCount` thẻ đầu tiên.
 function renderGallery() {
   const grid = document.getElementById("motifGrid");
   const emptyState = document.getElementById("motifEmptyState");
   if (!grid) return;
 
-  const byCategory =
-    activeCategory === "Tất cả" ? allMotifs : allMotifs.filter((m) => m.category === activeCategory);
-  const filtered = searchQuery ? byCategory.filter(matchesSearch) : byCategory;
+  const filtered = getFilteredMotifs();
 
   grid.innerHTML = "";
   updateSearchCount(filtered.length);
@@ -225,42 +291,64 @@ function renderGallery() {
         : "Chưa có dữ liệu nào phù hợp bộ lọc.";
       emptyState.classList.remove("hidden");
     }
+    updateLoadMore(0);
     return;
   }
   emptyState?.classList.add("hidden");
 
-  filtered.forEach((motif, index) => {
-    const card = document.createElement("article");
-    card.className = "motif-card";
-    card.style.setProperty("--stagger-index", index % 6);
-    card.setAttribute("data-aos", "fade-up");
-    card.setAttribute("data-aos-delay", String((index % 6) * 90));
-    card.tabIndex = 0;
-    card.setAttribute("role", "button");
-    card.setAttribute("aria-label", `Xem chi tiết: ${motif.title}`);
-
-    card.innerHTML = `
-      <div class="motif-card__bg" style="background-image:url('${motif.imageUrl}')"></div>
-      <div class="motif-card__scrim"></div>
-      <div class="motif-card__body glass-panel-dark">
-        <span class="motif-card__tag">${escapeHTML(motif.category)}</span>
-        <h3 class="font-serif text-white text-lg mt-2 leading-snug">${escapeHTML(motif.title)}</h3>
-        <p class="text-cream/70 text-xs mt-1">${escapeHTML(motif.templeName || "")}</p>
-      </div>
-    `;
-
-    card.addEventListener("click", () => openMotifModal(motif));
-    card.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") openMotifModal(motif);
-    });
-
-    grid.appendChild(card);
-  });
+  filtered.slice(0, visibleCount).forEach((motif, index) => grid.appendChild(buildMotifCard(motif, index)));
+  updateLoadMore(filtered.length);
 
   // Cho AOS quét lại các phần tử vừa được thêm động vào DOM
   if (typeof AOS !== "undefined") AOS.refreshHard();
 }
 
+// Bấm "Xem thêm": chỉ thêm các thẻ mới vào cuối, không vẽ lại các thẻ đang có (đỡ nhảy trang)
+function showMoreMotifs() {
+  const grid = document.getElementById("motifGrid");
+  if (!grid) return;
+
+  const filtered = getFilteredMotifs();
+  const from = Math.min(grid.children.length, filtered.length);
+  visibleCount = Math.min(from + LOAD_MORE_STEP, filtered.length);
+
+  const newCards = filtered.slice(from, visibleCount).map((motif, i) => buildMotifCard(motif, i));
+  newCards.forEach((card) => grid.appendChild(card));
+  updateLoadMore(filtered.length);
+
+  if (typeof AOS !== "undefined") AOS.refreshHard();
+
+  // Hết thẻ thì nút biến mất: chuyển tiêu điểm bàn phím sang thẻ mới đầu tiên để không bị "mất chỗ"
+  const btn = document.getElementById("loadMoreBtn");
+  if (btn && btn.classList.contains("hidden") && newCards[0]) newCards[0].focus({ preventScroll: true });
+}
+
+function updateLoadMore(total) {
+  const wrap = document.getElementById("loadMoreWrap");
+  const btn = document.getElementById("loadMoreBtn");
+  const count = document.getElementById("motifShownCount");
+  if (!wrap || !btn || !count) return;
+
+  const shown = Math.min(visibleCount, total);
+  const remaining = total - shown;
+
+  // Ít hơn hoặc bằng số thẻ ban đầu thì không cần khu vực này
+  wrap.classList.toggle("hidden", total <= INITIAL_VISIBLE);
+  btn.classList.toggle("hidden", remaining <= 0);
+  count.textContent =
+    remaining > 0 ? `Đang hiển thị ${shown} / ${total} chi tiết` : `Đã hiển thị tất cả ${total} chi tiết`;
+}
+
+function initLoadMore() {
+  document.getElementById("loadMoreBtn")?.addEventListener("click", showMoreMotifs);
+}
+
+
+// ============================================================
+// Ô TÌM KIẾM TRONG THƯ VIỆN DI SẢN
+// ============================================================
+// Tìm không phân biệt hoa/thường và KHÔNG cần gõ dấu: "chan" tìm ra "CHẦN", "tuong" ra "Tượng".
+// Nhiều từ khoá thì bài phải chứa tất cả các từ (VD: "krud sức mạnh").
 function normalizeText(str) {
   return String(str || "")
     .normalize("NFD")
@@ -270,7 +358,7 @@ function normalizeText(str) {
     .toLowerCase();
 }
 
-const searchTextCache = new WeakMap(); 
+const searchTextCache = new WeakMap(); // mỗi hoa văn chỉ chuẩn hóa chữ một lần
 
 function getSearchText(motif) {
   let text = searchTextCache.get(motif);
@@ -308,6 +396,7 @@ function initMotifSearch() {
   let timer = null;
   const apply = () => {
     searchQuery = input.value.trim().replace(/\s+/g, " ");
+    visibleCount = INITIAL_VISIBLE;
     clearBtn.classList.toggle("hidden", input.value === "");
     renderGallery();
   };
@@ -315,7 +404,7 @@ function initMotifSearch() {
   input.addEventListener("input", () => {
     clearBtn.classList.toggle("hidden", input.value === "");
     clearTimeout(timer);
-    timer = setTimeout(apply, 150);
+    timer = setTimeout(apply, 150); // chờ người dùng ngừng gõ một chút rồi mới lọc
   });
   input.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
@@ -330,6 +419,9 @@ function initMotifSearch() {
   });
 }
 
+// ============================================================
+// MODAL CHI TIẾT
+// ============================================================
 function initModal() {
   const overlay = document.getElementById("motifModal");
   const closeBtn = document.getElementById("modalCloseBtn");
@@ -340,13 +432,17 @@ function initModal() {
     if (e.target === overlay) closeMotifModal();
   });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeMotifModal();
+    if (e.key !== "Escape") return;
+    if (isLightboxOpen()) closeLightbox(); // đang xem ảnh lớn: Esc chỉ đóng ảnh lớn, không đóng luôn cửa sổ chi tiết
+    else closeMotifModal();
   });
 }
 
 function openMotifModal(motif) {
   document.getElementById("modalImage").src = motif.imageUrl;
   document.getElementById("modalImage").alt = motif.title;
+  // Nền mờ cùng ảnh để lấp phần thừa khi ảnh dọc/ngang không vừa khung
+  document.getElementById("modalImageBlur").style.backgroundImage = `url("${String(motif.imageUrl).replace(/["\\\n]/g, "")}")`;
   document.getElementById("modalCategory").textContent = motif.category;
   document.getElementById("modalTitle").textContent = motif.title;
   renderModalSections(motif);
@@ -360,7 +456,6 @@ function openMotifModal(motif) {
   }
   document.getElementById("modalTemple").textContent = motif.templeName || "Chưa cập nhật";
   document.getElementById("modalAddress").textContent = motif.templeAddress || "";
-  document.getElementById("modalScans").textContent = `${motif.qrScans ?? 0} lượt quét`;
 
   const overlay = document.getElementById("motifModal");
   overlay.classList.add("is-open");
@@ -370,12 +465,120 @@ function openMotifModal(motif) {
 }
 
 function closeMotifModal() {
+  closeLightbox();
   const overlay = document.getElementById("motifModal");
   overlay.classList.remove("is-open");
   overlay.setAttribute("aria-hidden", "true");
   document.body.style.overflow = "";
 }
 
+
+// ============================================================
+// XEM ẢNH PHÓNG TO (lightbox)
+// ============================================================
+function initLightbox() {
+  const box = document.getElementById("imageLightbox");
+  const openBtn = document.getElementById("modalImageBtn");
+  const closeBtn = document.getElementById("lightboxCloseBtn");
+  if (!box || !openBtn || !closeBtn) return;
+
+  openBtn.addEventListener("click", openLightbox);
+  closeBtn.addEventListener("click", closeLightbox);
+  box.addEventListener("click", (e) => {
+    if (e.target.id !== "lightboxImage") closeLightbox(); // bấm ra ngoài ảnh thì đóng
+  });
+}
+
+function isLightboxOpen() {
+  return document.getElementById("imageLightbox")?.classList.contains("is-open");
+}
+
+function openLightbox() {
+  const src = document.getElementById("modalImage").currentSrc || document.getElementById("modalImage").src;
+  if (!src) return;
+  const img = document.getElementById("lightboxImage");
+  img.src = src;
+  img.alt = document.getElementById("modalImage").alt;
+  const box = document.getElementById("imageLightbox");
+  box.classList.add("is-open");
+  box.setAttribute("aria-hidden", "false");
+  document.getElementById("lightboxCloseBtn").focus();
+}
+
+function closeLightbox() {
+  const box = document.getElementById("imageLightbox");
+  if (!box || !box.classList.contains("is-open")) return;
+  box.classList.remove("is-open");
+  box.setAttribute("aria-hidden", "true");
+  document.getElementById("lightboxImage").src = "";
+  document.getElementById("modalImageBtn")?.focus({ preventScroll: true });
+}
+
+// ============================================================
+// THÔNG TIN CHÙA (popup bản đồ)
+// ============================================================
+// Phải giống hệt hàm templeKey() ở backend (utils/text.js): bỏ dấu, hạ chữ thường, gộp khoảng trắng
+function templeKey(name) {
+  return normalizeText(name).replace(/\s+/g, " ").trim();
+}
+
+const TEMPLE_CACHE_KEY = "khmer_museum_temples_v1";
+
+function setTemples(list) {
+  templesByKey = {};
+  (Array.isArray(list) ? list : []).forEach((t) => {
+    templesByKey[t.nameKey || templeKey(t.name)] = t;
+  });
+}
+
+function readTempleCache() {
+  try {
+    return JSON.parse(localStorage.getItem(TEMPLE_CACHE_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+// Gọi sau khi đã có danh sách hoa văn (lúc đó máy chủ chắc chắn đã dậy). Popup bản đồ được dựng lúc bấm
+// vào điểm, nên dữ liệu về muộn vẫn hiển thị đúng mà không cần vẽ lại bản đồ.
+async function fetchTemples() {
+  try {
+    const res = await fetchWithRetry(`${API_BASE_URL}/temples`, { attempts: 3 });
+    const list = await res.json();
+    setTemples(list);
+    try {
+      localStorage.setItem(TEMPLE_CACHE_KEY, JSON.stringify(list));
+    } catch {
+      /* bỏ qua nếu không lưu được */
+    }
+  } catch (err) {
+    console.warn("⚠️ Không tải được thông tin chùa:", err.message);
+  }
+}
+
+function buildMapPopup(group) {
+  const info = templesByKey[templeKey(group.templeName)] || {};
+  const row = (label, value) =>
+    `<div><span class="map-popup__label">${label}</span>` +
+    `<span class="map-popup__value${value ? "" : " is-empty"}">${value ? escapeHTML(value) : "Đang cập nhật"}</span></div>`;
+
+  return `
+    <div class="map-popup">
+      <div class="map-popup__name">${escapeHTML(info.name || group.templeName)}</div>
+      ${group.templeAddress ? `<div class="map-popup__address">${escapeHTML(group.templeAddress)}</div>` : ""}
+      <div class="map-popup__rows">
+        ${row("Năm xây dựng", info.foundedYear)}
+        ${row("Sư trụ trì", info.abbot)}
+        ${row("Giờ mở cửa", info.openingHours)}
+      </div>
+      <div class="map-popup__count">${group.motifs.length} chi tiết tạo hình đã số hóa</div>
+    </div>
+  `;
+}
+
+// ============================================================
+// BẢN ĐỒ ĐỊA LÝ THẬT (Leaflet + OpenStreetMap)
+// ============================================================
 function renderRealMap() {
   const mapEl = document.getElementById("realMap");
   if (!mapEl || typeof L === "undefined") return;
@@ -391,16 +594,17 @@ function renderRealMap() {
   }).addTo(leafletMap);
   }
 
-  if (markerLayer) markerLayer.clearLayers(); 
+  if (markerLayer) markerLayer.clearLayers(); // vẽ lại (VD: sau khi có dữ liệu mới) mà không bị trùng điểm
   else markerLayer = L.layerGroup().addTo(leafletMap);
 
+  // Gom nhóm hoa văn theo từng ngôi chùa (cùng toạ độ geoLocation) để mỗi chùa 1 marker
   const templeGroups = {};
   allMotifs.forEach((motif) => {
     const lat = motif.geoLocation?.lat;
     const lng = motif.geoLocation?.lng;
     if (typeof lat !== "number" || typeof lng !== "number") return;
 
-    const key = `${motif.templeName}__${lat}__${lng}`;
+    const key = `${templeKey(motif.templeName)}__${lat}__${lng}`; // gộp các cách viết khác nhau của cùng tên chùa
     if (!templeGroups[key]) {
       templeGroups[key] = {
         templeName: motif.templeName || "Chùa chưa đặt tên",
@@ -423,13 +627,7 @@ function renderRealMap() {
   const bounds = [];
   Object.values(templeGroups).forEach((group) => {
     const marker = L.marker([group.lat, group.lng], { icon: goldIcon }).addTo(markerLayer);
-    marker.bindPopup(`
-      <div style="font-family: 'Be Vietnam Pro', sans-serif; min-width:180px">
-        <strong style="font-family:'Playfair Display', serif; font-size:15px; color:#3A2C1D">${escapeHTML(group.templeName)}</strong>
-        <p style="font-size:12px; color:#6b5c46; margin:4px 0 6px">${escapeHTML(group.templeAddress)}</p>
-        <p style="font-size:12px; color:#B5533C; font-weight:600">${group.motifs.length} chi tiết tạo hình đã số hóa</p>
-      </div>
-    `);
+    marker.bindPopup(() => buildMapPopup(group), { minWidth: 240, maxWidth: 300 }); // dựng lúc bấm, nên luôn dùng dữ liệu chùa mới nhất
     bounds.push([group.lat, group.lng]);
   });
 
@@ -438,6 +636,13 @@ function renderRealMap() {
   }
 }
 
+
+// ============================================================
+// NỘI DUNG CHIA ĐOẠN
+// ============================================================
+// Ưu tiên `motif.sections` (mỗi mục có tiêu đề + nội dung do admin soạn).
+// Bản ghi cũ chỉ có `description` thì tự tách đoạn: theo dòng trống / xuống dòng,
+// hoặc nếu chỉ là một khối chữ dài thì gom khoảng 2-3 câu thành một đoạn.
 function splitIntoParagraphs(text) {
   const blocks = String(text || "")
     .split(/\n+/)
@@ -481,7 +686,7 @@ function renderModalSections(motif) {
     body.className = "modal-section__body";
     splitIntoParagraphs(sec.body).forEach((text) => {
       const p = document.createElement("p");
-      p.textContent = text; 
+      p.textContent = text; // textContent: tự động an toàn trước HTML chèn vào
       body.appendChild(p);
     });
     wrap.appendChild(body);
@@ -489,6 +694,9 @@ function renderModalSections(motif) {
   });
 }
 
+// ============================================================
+// TÌM BÀI BÁO LIÊN QUAN (gọi GET /api/news)
+// ============================================================
 const NEWS_SUGGESTIONS = [
   "chùa Khmer Vĩnh Long",
   "lễ hội Ok Om Bok",
@@ -522,6 +730,7 @@ function initNewsSearch() {
     searchNews();
   });
 
+  // Chỉ gọi API lần đầu khi khách cuộn tới mục này (đỡ tốn lượt gọi cho người không xem)
   if ("IntersectionObserver" in window) {
     const io = new IntersectionObserver(
       (entries) => {
@@ -551,7 +760,7 @@ async function searchNews() {
     return;
   }
 
-  const myId = ++newsRequestId; 
+  const myId = ++newsRequestId; // tránh kết quả cũ ghi đè kết quả mới khi bấm liên tiếp
   btn.disabled = true;
   status.textContent = `Đang tìm bài báo về “${q}”...`;
   grid.innerHTML = Array.from({ length: 6 }, () => '<div class="news-skeleton"></div>').join("");
@@ -608,6 +817,9 @@ function renderNews(items, q) {
   });
 }
 
+// ============================================================
+// GỬI ĐÓNG GÓP TỪ KHÁCH (POST /api/submissions)
+// ============================================================
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
 function initContributeForm() {
@@ -735,6 +947,9 @@ function showContributeError(msg) {
   el.classList.remove("hidden");
 }
 
+// ============================================================
+// TIỆN ÍCH
+// ============================================================
 function escapeHTML(str) {
   if (!str) return "";
   return String(str)
@@ -744,6 +959,7 @@ function escapeHTML(str) {
     .replaceAll('"', "&quot;");
 }
 
+// Dữ liệu dự phòng để xem trước giao diện khi chưa bật backend/MongoDB
 function getFallbackMotifs() {
   return [
     {
@@ -757,7 +973,6 @@ function getFallbackMotifs() {
       geoLocation: { lat: 9.9967, lng: 106.1667 },
       templeName: "Chùa Hạnh Phúc Tăng (Sanghamangala)",
       templeAddress: "Ấp Trung Trạch, xã Trung Thành, huyện Vũng Liêm, tỉnh Vĩnh Long",
-      qrScans: 12,
     },
     {
       _id: "demo2",
@@ -769,7 +984,6 @@ function getFallbackMotifs() {
       geoLocation: { lat: 9.9967, lng: 106.1667 },
       templeName: "Chùa Hạnh Phúc Tăng (Sanghamangala)",
       templeAddress: "Ấp Trung Trạch, xã Trung Thành, huyện Vũng Liêm, tỉnh Vĩnh Long",
-      qrScans: 5,
     },
     {
       _id: "demo3",
@@ -781,7 +995,6 @@ function getFallbackMotifs() {
       geoLocation: { lat: 10.045, lng: 105.9628 },
       templeName: "Chùa Phước Hậu",
       templeAddress: "Ấp Đông Hậu, xã Ngãi Tứ, huyện Tam Bình, tỉnh Vĩnh Long",
-      qrScans: 3,
     },
   ];
 }

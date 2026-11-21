@@ -1,4 +1,10 @@
+// admin.js
+// Logic phía Client cho admin.html: đăng nhập JWT, lưu token, gọi API bảo vệ
+// để Thêm / Sửa / Xoá hoa văn, và hiển thị thống kê nhanh cho Dashboard.
 
+// Tự nhận diện môi trường: chạy local thì gọi localhost, deploy thật thì gọi backend Render.
+// Sau khi deploy backend lên Render, thay PRODUCTION_API_URL bằng địa chỉ Render thật của bạn
+// (phải TRÙNG với giá trị trong frontend/js/main.js).
 const PRODUCTION_API_URL = "https://catvang.onrender.com/api";
 const API_BASE_URL =
   ["localhost", "127.0.0.1"].includes(window.location.hostname)
@@ -9,7 +15,9 @@ const ADMIN_KEY = "khmer_museum_admin_info";
 
 let currentMotifs = [];
 let editingMotifId = null;
-let approvingSubmission = null; 
+let approvingSubmission = null; // có giá trị khi form đang ở chế độ "Duyệt đóng góp"
+let currentTemples = [];
+let editingTempleName = null;
 let currentSubmissions = [];
 let submissionStatus = "pending";
 
@@ -18,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initLogout();
   initMotifFormModal();
   initTabs();
+  initTemplePanel();
   initSubmissionPanel();
 
   const token = getToken();
@@ -28,6 +37,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// ============================================================
+// XÁC THỰC / PHIÊN ĐĂNG NHẬP
+// ============================================================
 function getToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
@@ -55,6 +67,7 @@ function initLoginForm() {
 
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value;
+    // Máy chủ Render gói miễn phí có thể đang ngủ: sau 4 giây vẫn chưa xong thì báo khách đợi
     const wakeTimer = setTimeout(() => {
       submitBtn.textContent = "Máy chủ đang khởi động, vui lòng đợi...";
     }, 4000);
@@ -116,9 +129,13 @@ function showDashboard(admin) {
 
   loadStats();
   loadMotifTable();
+  loadTemples();
   loadSubmissionBadge();
 }
 
+// ============================================================
+// GỌI API CÓ XÁC THỰC (helper)
+// ============================================================
 async function authFetch(path, options = {}) {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
@@ -138,13 +155,16 @@ async function authFetch(path, options = {}) {
   return res;
 }
 
+// ============================================================
+// THỐNG KÊ DASHBOARD
+// ============================================================
 async function loadStats() {
   try {
     const res = await authFetch("/stats");
     const stats = await res.json();
 
     document.getElementById("statTotalMotifs").textContent = stats.totalMotifs;
-    document.getElementById("statTotalScans").textContent = stats.totalScans;
+    document.getElementById("statTotalTemples").textContent = stats.totalTemples;
 
     const catEl = document.getElementById("statByCategory");
     catEl.innerHTML = stats.byCategory
@@ -158,14 +178,18 @@ async function loadStats() {
   }
 }
 
+// ============================================================
+// BẢNG DANH SÁCH HOA VĂN
+// ============================================================
 async function loadMotifTable() {
   const errorEl = document.getElementById("adminError");
   errorEl.classList.add("hidden");
 
   try {
-    const res = await fetch(`${API_BASE_URL}/motifs`); 
+    const res = await fetch(`${API_BASE_URL}/motifs`); // GET công khai, không cần token
     currentMotifs = await res.json();
     renderMotifTable();
+    renderTempleTable(); // danh sách chùa lấy tên từ các hoa văn
   } catch (err) {
     errorEl.textContent = "Không thể tải danh sách hoa văn: " + err.message;
     errorEl.classList.remove("hidden");
@@ -195,7 +219,6 @@ function renderMotifTable() {
         <span class="text-xs px-2.5 py-1 rounded-full bg-gold/15 text-gold-dark">${escapeHTML(motif.category)}</span>
       </td>
       <td class="px-4 py-3 text-ink/60 max-w-[180px]">${escapeHTML(motif.templeName || "—")}</td>
-      <td class="px-4 py-3 text-terracotta font-semibold">${motif.qrScans ?? 0}</td>
       <td class="px-4 py-3 text-right whitespace-nowrap">
         <button data-action="edit" data-id="${motif._id}" class="text-xs px-3 py-1.5 rounded-full border border-gold/30 text-gold-dark hover:bg-gold/10 transition-colors mr-2">Sửa</button>
         <button data-action="delete" data-id="${motif._id}" class="text-xs px-3 py-1.5 rounded-full border border-terracotta/30 text-terracotta hover:bg-terracotta/10 transition-colors">Xoá</button>
@@ -212,7 +235,9 @@ function renderMotifTable() {
   );
 }
 
-
+// ============================================================
+// MODAL FORM THÊM / SỬA
+// ============================================================
 function initMotifFormModal() {
   const overlay = document.getElementById("motifFormModal");
   const openBtn = document.getElementById("openCreateBtn");
@@ -232,6 +257,9 @@ function initMotifFormModal() {
   initSectionsEditor();
 }
 
+// ============================================================
+// TẢI ẢNH TỪ MÁY TÍNH (input file -> preview -> upload lên server)
+// ============================================================
 function initImageUploadField() {
   const fileInput = document.getElementById("fImageFile");
   const fileNameEl = document.getElementById("fImageFileName");
@@ -245,6 +273,7 @@ function initImageUploadField() {
 
     fileNameEl.textContent = file.name;
 
+    // Xem trước ảnh ngay lập tức (chưa cần chờ upload xong)
     const reader = new FileReader();
     reader.onload = (e) => {
       preview.src = e.target.result;
@@ -255,6 +284,7 @@ function initImageUploadField() {
     await uploadImageFile(file);
   });
 
+  // Nếu admin tự dán/sửa URL ảnh bằng tay, cập nhật preview tương ứng
   urlInput.addEventListener("change", () => {
     if (urlInput.value.trim()) {
       preview.src = urlInput.value.trim();
@@ -280,7 +310,7 @@ function initImageUploadField() {
     try {
       const res = await fetch(`${API_BASE_URL}/upload`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${getToken()}` },
+        headers: { Authorization: `Bearer ${getToken()}` }, // KHÔNG set Content-Type — browser tự thêm boundary
         body: formData,
       });
       const data = await res.json();
@@ -414,7 +444,7 @@ async function handleFormSubmit(e) {
     const res = await authFetch(path, { method, body: JSON.stringify(payload) });
     const data = await res.json();
     if (!res.ok) {
-      if (isApproving && res.status === 409) await loadSubmissions();  
+      if (isApproving && res.status === 409) await loadSubmissions(); // bài đã được xử lý -> làm mới danh sách
       throw new Error(data.message || "Không thể lưu hoa văn");
     }
 
@@ -451,6 +481,10 @@ async function handleDelete(id) {
   }
 }
 
+
+// ============================================================
+// TRÌNH SOẠN NỘI DUNG CHIA ĐOẠN (tiêu đề nhỏ + nội dung)
+// ============================================================
 function initSectionsEditor() {
   const editor = document.getElementById("sectionsEditor");
   document.getElementById("addSectionBtn").addEventListener("click", () => {
@@ -458,6 +492,7 @@ function initSectionsEditor() {
     row.querySelector(".sec-heading").focus();
   });
 
+  // Nút ↑ ↓ ✕ trên từng đoạn (event delegation)
   editor.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-sec-action]");
     if (!btn) return;
@@ -501,28 +536,174 @@ function collectSections() {
       heading: row.querySelector(".sec-heading").value.trim(),
       body: row.querySelector(".sec-body").value.trim(),
     }))
-    .filter((sec) => sec.body); 
+    .filter((sec) => sec.body); // bỏ đoạn trống
 }
 
-
+// ============================================================
+// TAB: CHI TIẾT TẠO HÌNH  |  ĐÓNG GÓP TỪ CỘNG ĐỒNG
+// ============================================================
 function initTabs() {
   document.getElementById("tabMotifs").addEventListener("click", () => switchTab("motifs"));
+  document.getElementById("tabTemples").addEventListener("click", () => switchTab("temples"));
   document.getElementById("tabSubmissions").addEventListener("click", () => switchTab("submissions"));
 }
 
 function switchTab(name) {
-  const isMotifs = name === "motifs";
-  document.getElementById("panelMotifs").classList.toggle("hidden", !isMotifs);
-  document.getElementById("panelSubmissions").classList.toggle("hidden", isMotifs);
-  const tabM = document.getElementById("tabMotifs");
-  const tabS = document.getElementById("tabSubmissions");
-  tabM.classList.toggle("is-active", isMotifs);
-  tabS.classList.toggle("is-active", !isMotifs);
-  tabM.setAttribute("aria-selected", String(isMotifs));
-  tabS.setAttribute("aria-selected", String(!isMotifs));
-  if (!isMotifs) loadSubmissions();
+  ["motifs", "temples", "submissions"].forEach((key) => {
+    const cap = key.charAt(0).toUpperCase() + key.slice(1);
+    const active = key === name;
+    document.getElementById(`panel${cap}`).classList.toggle("hidden", !active);
+    const tab = document.getElementById(`tab${cap}`);
+    tab.classList.toggle("is-active", active);
+    tab.setAttribute("aria-selected", String(active));
+  });
+  if (name === "submissions") loadSubmissions();
+  if (name === "temples") loadTemples();
 }
 
+// ============================================================
+// THÔNG TIN CHÙA (năm xây, sư trụ trì, giờ mở cửa -> popup bản đồ)
+// ============================================================
+// Phải giống hệt templeKey() ở backend (utils/text.js) và main.js
+function templeKey(name) {
+  return String(name || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function loadTemples() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/temples`); // GET công khai
+    if (!res.ok) throw new Error(`Mã ${res.status}`);
+    currentTemples = await res.json();
+  } catch (err) {
+    console.warn("Không thể tải thông tin chùa:", err.message);
+  }
+  renderTempleTable();
+}
+
+// Gộp tên chùa từ các hoa văn + các chùa đã có thông tin (kể cả chùa không còn hoa văn nào)
+function collectTempleRows() {
+  const rows = new Map();
+  currentMotifs.forEach((m) => {
+    const name = (m.templeName || "").trim();
+    if (!name) return;
+    const key = templeKey(name);
+    const row = rows.get(key) || { key, name, count: 0 };
+    row.count += 1;
+    rows.set(key, row);
+  });
+  currentTemples.forEach((t) => {
+    const key = t.nameKey || templeKey(t.name);
+    if (!rows.has(key)) rows.set(key, { key, name: t.name, count: 0 });
+  });
+  return [...rows.values()].sort((a, b) => a.name.localeCompare(b.name, "vi"));
+}
+
+function renderTempleTable() {
+  const tbody = document.getElementById("templeTableBody");
+  const empty = document.getElementById("templeEmptyState");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  const rows = collectTempleRows();
+  empty.classList.toggle("hidden", rows.length > 0);
+
+  const cell = (v) => (v ? escapeHTML(v) : '<span class="text-ink/30">—</span>');
+
+  rows.forEach((row) => {
+    const info = currentTemples.find((t) => (t.nameKey || templeKey(t.name)) === row.key) || {};
+    const tr = document.createElement("tr");
+    tr.className = "hover:bg-beige/30 transition-colors";
+    tr.innerHTML = `
+      <td class="px-4 py-3 font-medium text-ink">
+        ${escapeHTML(row.name)}
+        <span class="block text-xs font-normal text-ink/45">${
+          row.count ? `${row.count} chi tiết tạo hình` : "Không còn hoa văn nào dùng tên này"
+        }</span>
+      </td>
+      <td class="px-4 py-3 text-ink/70">${cell(info.foundedYear)}</td>
+      <td class="px-4 py-3 text-ink/70">${cell(info.abbot)}</td>
+      <td class="px-4 py-3 text-ink/70">${cell(info.openingHours)}</td>
+      <td class="px-4 py-3 text-right whitespace-nowrap">
+        <button type="button" data-temple-edit class="text-xs px-3 py-1.5 rounded-full border border-gold/30 text-gold-dark hover:bg-gold/10 transition-colors">Cập nhật</button>
+      </td>
+    `;
+    tr.querySelector("[data-temple-edit]").addEventListener("click", () => openTempleForm(row.name, info));
+    tbody.appendChild(tr);
+  });
+}
+
+function initTemplePanel() {
+  const overlay = document.getElementById("templeFormModal");
+  const close = () => {
+    overlay.classList.remove("is-open");
+    overlay.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  };
+  document.getElementById("templeFormCloseBtn").addEventListener("click", close);
+  document.getElementById("templeCancelBtn").addEventListener("click", close);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) close();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && overlay.classList.contains("is-open")) close();
+  });
+
+  document.getElementById("templeForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const errorEl = document.getElementById("templeFormError");
+    const btn = document.getElementById("templeSubmitBtn");
+    errorEl.classList.add("hidden");
+    btn.disabled = true;
+    btn.textContent = "Đang lưu...";
+    try {
+      const res = await authFetch("/temples", {
+        method: "PUT",
+        body: JSON.stringify({
+          name: editingTempleName,
+          foundedYear: document.getElementById("tFounded").value,
+          abbot: document.getElementById("tAbbot").value,
+          openingHours: document.getElementById("tHours").value,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Không thể lưu thông tin chùa");
+      showToast(data.deleted ? "Đã xoá thông tin chùa" : "Đã lưu thông tin chùa", "success");
+      close();
+      await loadTemples();
+    } catch (err) {
+      errorEl.textContent = err.message;
+      errorEl.classList.remove("hidden");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Lưu thông tin";
+    }
+  });
+}
+
+function openTempleForm(name, info) {
+  editingTempleName = name;
+  document.getElementById("tName").value = name;
+  document.getElementById("tFounded").value = info.foundedYear || "";
+  document.getElementById("tAbbot").value = info.abbot || "";
+  document.getElementById("tHours").value = info.openingHours || "";
+  document.getElementById("templeFormError").classList.add("hidden");
+  const overlay = document.getElementById("templeFormModal");
+  overlay.classList.add("is-open");
+  overlay.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+  document.getElementById("tFounded").focus();
+}
+
+// ============================================================
+// DUYỆT ĐÓNG GÓP TỪ CỘNG ĐỒNG
+// ============================================================
 function initSubmissionPanel() {
   document.querySelectorAll("#submissionFilters .sub-filter").forEach((btn) =>
     btn.addEventListener("click", () => {
@@ -625,12 +806,12 @@ function renderSubmissions() {
   });
 }
 
-
+// Mở form Thêm/Sửa ở chế độ "Duyệt": điền sẵn từ bài đóng góp, admin chỉnh + bổ sung GPS rồi đăng
 function openApproveForm(id) {
   const sub = currentSubmissions.find((x) => x._id === id);
   if (!sub) return;
 
-  openCreateForm(); 
+  openCreateForm(); // reset form về trạng thái sạch
   approvingSubmission = sub;
   setApproveMode(true);
 
@@ -650,6 +831,7 @@ function openApproveForm(id) {
     `Kiểm tra và chỉnh nội dung, tách đoạn nếu cần, bổ sung toạ độ GPS rồi bấm “Duyệt &amp; đăng”.`;
 }
 
+// Bật/tắt giao diện chế độ duyệt (khoá ô ảnh vì ảnh đã được người gửi tải lên)
 function setApproveMode(on) {
   document.getElementById("approveInfo").classList.toggle("hidden", !on);
   document.getElementById("formSubmitBtn").textContent = on ? "Duyệt & đăng" : "Lưu hoa văn";
@@ -663,7 +845,7 @@ async function handleReject(id) {
   const reason = prompt(
     `Từ chối "${sub?.title || "bài này"}"?\nẢnh sẽ bị xoá khỏi kho lưu trữ.\n\nLý do (không bắt buộc, chỉ lưu nội bộ):`
   );
-  if (reason === null) return; 
+  if (reason === null) return; // bấm Huỷ
 
   try {
     const res = await authFetch(`/submissions/${id}/reject`, { method: "POST", body: JSON.stringify({ reason }) });
@@ -689,6 +871,9 @@ async function handleSubmissionDelete(id) {
   await Promise.all([loadSubmissions(), loadSubmissionBadge()]);
 }
 
+// ============================================================
+// TOAST THÔNG BÁO
+// ============================================================
 let toastTimer = null;
 function showToast(message, type = "success") {
   const toast = document.getElementById("toast");
@@ -701,6 +886,9 @@ function showToast(message, type = "success") {
   toastTimer = setTimeout(() => toast.classList.remove("is-visible"), 3200);
 }
 
+// ============================================================
+// TIỆN ÍCH
+// ============================================================
 function escapeHTML(str) {
   if (!str) return "";
   return String(str)

@@ -24,7 +24,6 @@ const sampleMotifs = [
     geoLocation: { lat: 9.9967, lng: 106.1667 },
     templeName: "Chùa Hạnh Phúc Tăng (Sanghamangala)",
     templeAddress: "Ấp Trung Trạch, xã Trung Thành, huyện Vũng Liêm, tỉnh Vĩnh Long",
-    qrScans: 0,
   },
   {
     title: "Phù điêu tiên nữ Kemonak trên vách",
@@ -36,7 +35,6 @@ const sampleMotifs = [
     geoLocation: { lat: 9.9967, lng: 106.1667 },
     templeName: "Chùa Hạnh Phúc Tăng (Sanghamangala)",
     templeAddress: "Ấp Trung Trạch, xã Trung Thành, huyện Vũng Liêm, tỉnh Vĩnh Long",
-    qrScans: 0,
   },
   {
     title: "Hoa văn ngọn lửa trên diềm mái",
@@ -48,7 +46,6 @@ const sampleMotifs = [
     geoLocation: { lat: 10.045, lng: 105.9628 },
     templeName: "Chùa Phước Hậu",
     templeAddress: "Ấp Đông Hậu, xã Ngãi Tứ, huyện Tam Bình, tỉnh Vĩnh Long",
-    qrScans: 0,
   },
   {
     title: "Rắn thần Naga trên bậc thang",
@@ -60,7 +57,6 @@ const sampleMotifs = [
     geoLocation: { lat: 10.045, lng: 105.9628 },
     templeName: "Chùa Phước Hậu",
     templeAddress: "Ấp Đông Hậu, xã Ngãi Tứ, huyện Tam Bình, tỉnh Vĩnh Long",
-    qrScans: 0,
   },
   {
     title: "Bích họa tích Đức Phật đản sinh",
@@ -72,7 +68,6 @@ const sampleMotifs = [
     geoLocation: { lat: 9.9967, lng: 106.1667 },
     templeName: "Chùa Hạnh Phúc Tăng (Sanghamangala)",
     templeAddress: "Ấp Trung Trạch, xã Trung Thành, huyện Vũng Liêm, tỉnh Vĩnh Long",
-    qrScans: 0,
   },
   {
     title: "Phù điêu hoa sen bệ thờ",
@@ -84,7 +79,6 @@ const sampleMotifs = [
     geoLocation: { lat: 10.2536, lng: 105.9722 },
     templeName: "Chùa Khmer nội ô TP. Vĩnh Long",
     templeAddress: "Phường 4, TP. Vĩnh Long, tỉnh Vĩnh Long",
-    qrScans: 0,
   },
 ];
 
